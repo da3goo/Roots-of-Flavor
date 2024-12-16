@@ -27,7 +27,7 @@ var db *sql.DB
 func init() {
 	var err error
 
-	connStr := "user=postgres dbname=apProject password=doiORG2424 sslmode=disable"
+	connStr := "postgres://postgres.omqkkeruydkttwwkdnib:50TADocqYFe4CFTx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -38,6 +38,7 @@ func init() {
 		log.Fatal("Error connecting to the database:", err)
 	}
 }
+
 
 func getFoodByName(w http.ResponseWriter, r *http.Request) {
 
