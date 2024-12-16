@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz</title>
+    <link rel="stylesheet" href="footer.css" />
+    <link rel="stylesheet" href="navbarHeader.css" />
+    <link rel="stylesheet" href="darkModeFoods.css" />
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="/FoodHistoryProject/favicon/favicon-96x96.png"
+      sizes="96x96"
+    />
+  </head>
+  <style>
+    body {
+      background-color: beige;
+    }
+
+    * {
+      margin: 0px;
+      padding: 0px;
+      box-sizing: border-box;
+      font-family: sans-serif;
+    }
+
+    .login-container {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-color);
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .main-container {
+      text-align: center;
+      margin-top: 100px;
+      margin-bottom: 390px;
+    }
+
+    .h2 {
+      margin-bottom: 100px;
+    }
+
+    .startBtn {
+      border: 1px solid green;
+      background: green;
+      color: #fff;
+      border: none;
+      padding: 20px 40px;
+      border-radius: 15px;
+      font-size: 20px;
+      text-decoration: none;
+      margin-top: 100px;
+    }
+
+    .startBtn:hover {
+      background: none;
+      color: #68c778;
+      border: 1px solid #2d8f46;
+    }
+  </style>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <div class="logo-container">
+          <a href="main_page.html"
+            ><img src="../pictures/logo.png" alt="Logo" width="85"
+          /></a>
+        </div>
+
+        <div class="login-container">
+          <a id="logInText" class="login-link">
+            <span>Login</span>
+          </a>
+          <img
+            src="../pictures/login-avatar.png"
+            alt="Login Icon"
+            width="22"
+            height="22"
+          />
+          <a id="logOutText" class="login-link" style="display: none"
+            ><br />
+            <span class="qwer123">Logout</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navbar -->
+    <div class="navbar">
+      <button class="darkModeBtn" id="darkModeBtn">🌙 Dark Mode</button>
+      <a href="aboutUs.html">About Us</a>
+      <div class="menu-item">
+        <a href="#" class="menu-link" id="foodsLink">
+          Foods
+          <span class="icon">
+            <svg
+              class="chevron-down icon-down"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+            >
+              <path
+                d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+              />
+            </svg>
+            <svg
+              class="chevron-up icon-up"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 512 512"
+            >
+              <path
+                d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"
+              />
+            </svg>
+          </span>
+        </a>
+        <div class="submenu" id="foodsSubmenu">
+          <a href="dishes.html">Dishes</a>
+          <a href="foodProducts.html">Food Products</a>
+          <a href="beverages.html">Beverages</a>
+        </div>
+      </div>
+      <a href="dish_map.html" id="dishMapLink">Map</a>
+      <a href="quiz.html" id="quizLink">Quiz</a>
+    </div>
+    <!-- Modal Login -->
+    <div id="loginModal" class="modal loginModal">
+      <div class="modal-content loginModal-content">
+        <span class="closeBtnLoginModal">&times;</span>
+        <h2 class="modal-title loginText2">Login</h2>
+        <form id="loginForm" class="modal-form">
+          <label for="emailInput" class="form-label">Email:</label>
+          <input type="email" id="emailInput" class="form-input" required />
+          <br />
+          <label for="passwordInput" class="form-label">Password:</label>
+          <input
+            type="password"
+            id="passwordInput"
+            class="form-input"
+            required
+          />
+          <br />
+          <p class="modal-footer">
+            First time here?
+            <a id="registerText" href="#" class="modal-link">Register</a>
+          </p>
+          <br />
+          <button type="submit" class="modal-button">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Register -->
+    <div id="registerModal" class="modal registerModal">
+      <div class="modal-content registerModal-content">
+        <span class="closeBtnRegisterModal">&times;</span>
+        <h2 class="modal-title">Register</h2>
+        <form id="registerForm" class="modal-form">
+          <label for="nameInput" class="form-label">Name:</label>
+          <input
+            type="text"
+            id="nameRegiserInput"
+            class="form-input"
+            required
+          />
+
+          <label for="surnameInput" class="form-label">Surname:</label>
+          <input type="text" id="surnameRegisterInput" class="form-input" />
+
+          <label for="emailRegisterInput" class="form-label">Email:</label>
+          <input
+            type="email"
+            id="emailRegisterInput"
+            class="form-input"
+            required
+          />
+
+          <label for="passwordRegisterInput" class="form-label"
+            >Password:</label
+          >
+          <input
+            type="password"
+            id="passwordRegisterInput"
+            class="form-input"
+            required
+          />
+
+          <button type="submit" class="modal-button">Register</button>
+        </form>
+      </div>
+    </div>
+    <!-- Main -->
+    <div class="main-container">
+      <h2>Quiz duration 3 minutes</h2>
+      <h2 class="h2">There are 10 questions</h2>
+
+      <a href="startQuiz.html" class="startBtn">Food Quiz</a>
+    </div>
+
+    <!-- footer  -->
+    <footer class="footer">
+      <div class="waves">
+        <div class="wave" id="wave1"></div>
+        <div class="wave" id="wave2"></div>
+        <div class="wave" id="wave3"></div>
+        <div class="wave" id="wave4"></div>
+      </div>
+      <ul class="social-icon">
+        <li class="social-icon__item">
+          <a class="social-icon__link" href="https://wa.me/+77758484535">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+          </a>
+        </li>
+
+        <li class="social-icon__item">
+          <a class="social-icon__link" href="#">
+            <ion-icon name="logo-linkedin"></ion-icon>
+          </a>
+        </li>
+        <li class="social-icon__item">
+          <a class="social-icon__link" href="https://www.instagram.com/da3goo">
+            <ion-icon name="logo-instagram"></ion-icon>
+          </a>
+        </li>
+      </ul>
+      <ul class="menu">
+        <li class="menu__item">
+          <a class="menu__link" href="main_page.html">Home</a>
+        </li>
+        <li class="menu__item">
+          <a class="menu__link" href="aboutUs.html">About</a>
+        </li>
+        <li class="menu__item">
+          <a class="menu__link" href="aboutUs.html">Contact</a>
+        </li>
+      </ul>
+      <p>&copy;2024 Roots of Flavor - Food History | All Rights Reserved</p>
+    </footer>
+    <script src="dish_map.js"></script>
+    <script src="navbarHeader.js"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"
+    ></script>
+    <script>
+      document.getElementById("quizLink").style.color = "#ff6347";
+      document.getElementById("quizLink").style.textDecoration = "underline";
+      const darkModeToggle = document.getElementById("darkModeBtn");
+      const body = document.body;
+
+      if (localStorage.getItem("dark-mode") === "enabled") {
+        body.classList.add("dark-mode");
+      }
+
+      darkModeToggle.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+        if (body.classList.contains("dark-mode")) {
+          localStorage.setItem("dark-mode", "enabled");
+        } else {
+          localStorage.setItem("dark-mode", "disabled");
+        }
+      });
+    </script>
+  </body>
+</html>

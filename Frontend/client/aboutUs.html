@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+
+    <style>
+     body {
+        font-family: "Roboto", sans-serif;
+        font-size: 16px;
+        background-color: #f8f8e8;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+        }
+
+        .aboutus-section {
+        padding: 90px 20px;
+        max-width: 1200px;
+        margin: auto;
+        display: flex;
+        flex-wrap: wrap;
+        }
+
+        .about {
+        flex: 1;
+        min-width: 300px;
+        padding: 20px;
+        }
+
+        .contact {
+        flex: 1;
+        min-width: 300px;
+        padding: 20px;
+        background-color: #fff8e1;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .aboutus-title {
+        font-size: 30px;
+        line-height: 32px;
+        margin-bottom: 39px;
+        padding-bottom: 11px;
+        position: relative;
+        text-transform: uppercase;
+        color: #000;
+        }
+
+        .aboutus-title::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 54px;
+        height: 2px;
+        background: #fdb801;
+        }
+
+        .aboutus-text {
+        color: #606060;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 35px;
+        }
+
+        .contact h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #000;
+        }
+
+        .contact form {
+        display: flex;
+        flex-direction: column;
+        }
+
+        .contact input,
+        .contact textarea {
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        box-sizing: border-box;
+        }
+
+        .contact button {
+        padding: 10px;
+        background-color: #fdb801;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .contact button:hover {
+        background-color: #c39002;
+        transform: translateY(-2px);
+        }
+
+        .icons {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+        }
+
+        .icon {
+        font-size: 288px;
+        background-color: beige;
+        border: 1px solid #fdb801;
+        border-radius: 50%;
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fdb801;
+        transition: transform 0.3s;
+        }
+
+        .icon:hover {
+        transform: scale(1.1);
+        }
+
+        .dbox {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        }
+
+        .dbox .icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+        }
+
+        .dbox .text p {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.5;
+        width: 100px; 
+        text-align: center;
+        }
+
+        a:hover,
+        a:active {
+        color: #ffb901;
+        text-decoration: none;
+        }
+
+        .aboutus-more {
+        border: 1px solid #fdb801;
+        border-radius: 25px;
+        color: #fdb801;
+        display: inline-block;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 7px 20px;
+        text-transform: uppercase;
+        transition: background-color 0.3s, color 0.3s;
+        }
+
+        .aboutus-more:hover {
+        background-color: #fdb801;
+        color: #fff;
+        }
+
+        .loader {
+        margin-top: 100px;
+        margin-left: 250px;
+        margin-bottom: 200px;
+        width: 60px;
+        aspect-ratio: 2;
+        --_g: no-repeat radial-gradient(circle closest-side, #000 90%, #0000);
+        background: var(--_g) 0% 50%, var(--_g) 50% 50%, var(--_g) 100% 50%;
+        background-size: calc(100% / 3) 50%;
+        animation: l3 1s infinite linear;
+        }
+
+        @keyframes l3 {
+        20% {
+            background-position: 0% 0%, 50% 50%, 100% 50%;
+        }
+        40% {
+            background-position: 0% 100%, 50% 0%, 100% 50%;
+        }
+        60% {
+            background-position: 0% 50%, 50% 100%, 100% 0%;
+        }
+        80% {
+            background-position: 0% 50%, 50% 50%, 100% 100%;
+        }
+        }
+
+        #success-message p {
+        margin-top: 50px;
+        font-size: 24px;
+        color: rgb(53, 214, 53);
+        margin-bottom: 100px;
+        }
+
+        /* Header */
+        #custom-header {
+        position: relative;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        }
+
+        #custom-logo-container {
+        position: absolute;
+        left: 50%;
+        top: -10px;
+        transform: translateX(-50%);
+        margin-left: 8px;
+        }
+
+        #custom-navbar {
+        min-height: 30px;
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+        text-align: center;
+        width: 100%;
+        margin-left: 8px;
+        }
+
+        #custom-navbar a {
+        text-decoration: none;
+        font-size: 18px;
+        color: rgb(69, 67, 67);
+        margin: 0 50px;
+        transition: font-size 0.3s, font-weight 0.3s;
+        }
+
+        #custom-navbar a:hover {
+        font-size: 19px;
+        font-weight: bold;
+        }
+
+        .contactUs {
+        margin-left: 200px;
+        }
+
+        #contactUsContainer {
+        margin-left: 550px;
+        }
+
+        #contactForm input[type="submit"] {
+        width: 100%;
+        margin-bottom: 50px;
+        background-color: #fdb801;
+        border: none;
+        transition: background-color 0.3s;
+        }
+
+        #contactForm input[type="submit"]:hover {
+        background-color: #c39002;
+        }
+
+
+
+        
+    .custom-darkModeBtn {
+      display: inline-block;
+      background-color: #343a40; 
+      color: white; 
+      border: 1px solid #343a40; 
+      padding: 0.375rem 0.75rem; 
+      font-size: 1rem;
+      font-weight: 400; 
+      text-align: center; 
+      border-radius: 0.25rem;
+      cursor: pointer; 
+      transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; 
+  }
+
+
+  .custom-darkModeBtn:hover, .custom-darkModeBtn:focus {
+      background-color: #23272b; 
+      border-color: #1d2124; 
+      text-decoration: none; 
+  }
+
+  .custom-darkModeBtn:active {
+      background-color: #1d2124; 
+      border-color: #171a1d; 
+  }
+  /* Dark mode  */
+    
+  body {
+      transition: background-color 0.5s ease, color 0.5s ease;
+  }
+
+  body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+  }
+
+
+
+
+  @keyframes darkModeEffect {
+      0% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+          background-color: #ffdd00;
+      }
+      50% {
+          transform: scale(1.5);
+          box-shadow: 0 0 150px 150px rgba(0, 0, 0, 0.7); 
+          background-color: #2c3e50;
+      }
+      100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+          background-color: #2c3e50; 
+      }
+  }
+  body.dark-mode .custom-darkModeBtn {
+      animation: darkModeEffect 1s forwards; 
+      background-color: #2c3e50; 
+      color: #e0e0e0; 
+  }
+  .dark-mode .title p{
+      color: #e0e0e0;
+  }
+  .dark-mode .title h1{
+      color: #e0e0e0;
+      font-weight: bold;
+  }
+
+
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto"
+      rel="stylesheet"
+    />
+    <link
+      href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"
+      rel="stylesheet"
+      id="bootstrap-css"
+    />
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header class="custom-header" id="custom-header">
+      <div class="custom-container" id="custom-container">
+        <div class="custom-logo-container" id="custom-logo-container">
+          <a href="main_page.html"
+            ><img src="../pictures/logo.png" alt="Logo" width="85"
+          /></a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navbar -->
+    <div class="custom-navbar" id="custom-navbar">
+      <button class="custom-darkModeBtn" id="custom-darkModeBtn">🌙 Dark Mode</button>
+      
+      <a href="aboutUs.html" id="custom-aboutUsText" class="custom-navbar-link"
+        >About Us</a
+      >
+    </div>
+
+    <div class="aboutus-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="aboutus">
+              <h2 class="aboutus-title" id="aboutUsText">About Us</h2>
+              <p class="aboutus-text" id="aboutUsP1">
+                Hello there! We are happy to see you here! Welcome to Roots Of Flavor, your guide for exploring the history and origins of dishes from around the world. We believe that every dish has a history, a culture, and a flavor that deserves to be mentioned.  From ancient recipes to modern-day culinary trends, we uncover the fascinating origins and cultural significance of food from around the world. 
+              </p>
+              <p class="aboutus-text" id="aboutUsP2">
+                Join us on a culinary adventure. Discover the world of food, one delicious bite at a time. Discover the secrets behind iconic dishes, learn about different culinary traditions, and get inspired to try new recipes.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6 col-xs-12">
+            <div class="aboutus-banner">
+              <img
+                src="http://themeinnovation.com/demo2/html/build-up/img/home1/about1.jpg"
+                alt=""
+              />
+            </div>
+          </div>
+          
+    <!-- Contact us -->
+    <div class="container" id="contactUsContainer">
+      <div class="row justify-content-center contactUs">
+        <div class="col-lg-10 col-md-12">
+          <div class="wrapper">
+            <div class="row justify-content-center">
+              <div class="col-lg-8 mb-5">
+                <div class="row">
+                  <!-- Address -->
+                  <div class="col-md-4">
+                    <div class="dbox w-100 text-center">
+                      <div
+                        class="icon d-flex align-items-center justify-content-center"
+                      >
+                        <span class="fa fa-map-marker"></span>
+                      </div>
+                      <div class="text">
+                        <p><span>Address:</span></p>
+                        <p>Mangilik El C1</p>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Phone -->
+                  <div class="col-md-4">
+                    <div class="dbox w-100 text-center">
+                      <div
+                        class="icon d-flex align-items-center justify-content-center"
+                      >
+                        <span class="fa fa-phone"></span>
+                      </div>
+                      <div class="text">
+                        <p><span>Phone:</span></p>
+                        <p><a href="tel:+77002685672">+77002685672</a></p>
+                        <p><a href="tel:+77758484535">+77758484535</a></p>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Email -->
+                  <div class="col-md-4">
+                    <div class="dbox w-100 text-center">
+                      <div
+                        class="icon d-flex align-items-center justify-content-center"
+                      >
+                        <span class="fa fa-paper-plane"></span>
+                      </div>
+                      <div class="text">
+                        <p><span>Email:</span></p>
+                        <p>
+                          <a href="mailto:kantaidaulet@gmail.com"
+                            >kantaidaulet@gmail.com</a
+                          >
+                        </p>
+                        <p>
+                          <a href="mailto:bshekish@gmail.com"
+                            >bshekish@gmail.com</a
+                          >
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Contact Form -->
+              <div class="col-lg-8">
+                <div class="contact-wrap">
+                  <h3 class="mb-4 text-center">Get in touch with us</h3>
+                  <div
+                    id="form-message-warning"
+                    class="mb-4 w-100 text-center"
+                  ></div>
+
+                  <form
+                    method="POST"
+                    id="contactForm"
+                    name="contactForm"
+                    class="contactForm"
+                    novalidate="novalidate"
+                  >
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <input
+                            type="text"
+                            class="form-control"
+                            name="name"
+                            id="name"
+                            placeholder="Name"
+                            required
+                          />
+                          <div
+                            class="error-message"
+                            id="name-error"
+                            style="color: red; display: none"
+                          >
+                            This field is required!
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <input
+                            type="email"
+                            class="form-control"
+                            name="email"
+                            id="email"
+                            placeholder="Email"
+                            required
+                          />
+                          <div
+                            class="error-message"
+                            id="email-error"
+                            style="color: red; display: none"
+                          >
+                            This field is required!
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <input
+                            type="text"
+                            class="form-control"
+                            name="subject"
+                            id="subject"
+                            placeholder="Subject"
+                            required
+                          />
+                          <div
+                            class="error-message"
+                            id="subject-error"
+                            style="color: red; display: none"
+                          >
+                            This field is required!
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <textarea
+                            name="message"
+                            class="form-control"
+                            id="message"
+                            cols="30"
+                            rows="8"
+                            placeholder="Message"
+                            required
+                          ></textarea>
+                          <div
+                            class="error-message"
+                            id="message-error"
+                            style="color: red; display: none"
+                          >
+                            This field is required!
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-12">
+                        <div class="form-group">
+                          <input
+                            type="submit"
+                            value="Send Message"
+                            class="btn btn-primary"
+                          />
+                          <div class="submitting"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                  <div
+                    id="error-message"
+                    class="w-100 text-center text-danger mt-3"
+                    style="display: none"
+                  >
+                    <p>Please fill out all the required fields!</p>
+                  </div>
+                  <div class="loader" id="loader" style="display: none"></div>
+                  <div
+                    id="success-message"
+                    class="w-100 text-center"
+                    style="display: none"
+                  >
+                    <p>Your message was sent, thank you!</p>
+                    <p>
+                      <a href="javascript:void(0);" id="resend-form"
+                        >Send form again</a
+                      >
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("custom-aboutUsText").style.color = "#d13d64";
+      document.getElementById("custom-aboutUsText").style.textDecoration =
+        "underline";
+      document.body.style.backgroundColor = "beige";
+      
+
+      const darkModeToggle = document.getElementById('custom-darkModeBtn');
+        const body = document.body;
+
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            body.classList.add('dark-mode');
+            
+        }
+
+        // Toggle button handler
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'enabled');
+                document.body.style.backgroundColor = "#121212";
+                document.getElementById('aboutUsText').style.color = '#e0e0e0';
+                document.getElementById('aboutUsP1').style.color = '#e0e0e0';
+                document.getElementById('aboutUsP2').style.color = '#e0e0e0';
+
+            } else {
+                localStorage.setItem('dark-mode', 'disabled');
+                document.body.style.backgroundColor = "beige";
+                document.getElementById('aboutUsText').style.color = '';
+                document.getElementById('aboutUsP1').style.color = '#606060';
+                document.getElementById('aboutUsP2').style.color = '#606060';
+
+
+            }
+        });
+    </script>
+  </body>
+</html>

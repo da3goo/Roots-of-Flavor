@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../client/navbarHeader.css">
+    <link rel="stylesheet" href="../client/footer.css">
+    <link rel="stylesheet" href="forFoods.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <a href="../client/main_page.html"><img src="../pictures/logo.png" alt="Logo" width="85"></a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <button id="dark-mode-toggle" class="btn btn-dark">🌙 Dark Mode</button>
+        <a href="../client/aboutUs.html">About Us</a>
+        <div class="menu-item">
+            <a href="#" class="menu-link" id="foodsLink">
+                Foods
+                <span class="icon">
+                    <svg class="chevron-down icon-down" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                    </svg>
+                    <svg class="chevron-up icon-up" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"/>
+                    </svg>
+                </span>
+            </a>
+            <div class="submenu" id="foodsSubmenu">
+                <a href="../client/dishes.html">Dishes</a>
+                <a href="../client/foodProducts.html">Food Products</a>
+                <a href="../client/beverages.html">Beverages</a>
+            </div>
+        </div>
+        <a href="../client/dish_map.html">Map</a>
+        <a href="../client/quiz.html">Quiz</a>
+    </div>
+
+    <!-- Main Content -->
+<main id="mainContent">
+    <article class="article-card">
+        <img src="" alt="Food Picture" class="article-image" id="foodImage">
+        
+        <div class="article-meta">
+            <div class="meta-left">
+                <span><i class="far fa-clock"></i> 1 min read</span>
+                <span><i class="far fa-calendar"></i> November 19, 2024</span>
+            </div>
+            <div class="meta-right">
+                <button id="like-button" class="interaction-button">
+                    <i id="like-icon" class="far fa-heart"></i>
+                    <span id="like-count">0</span>
+                </button>
+            </div>                
+        </div>
+
+        <div class="article-content">
+            <section class="article-section">
+                <h2 id="foodName">
+                    <!-- food name -->
+                </h2>
+                
+                <hr>
+                <h2>Origins</h2>
+                <p id="originsContent">
+                    <!-- description1 -->
+                </p>
+            </section>
+
+            <section class="article-section">
+                <h2>Cultural Significance</h2>
+                <p id="culturalContent">
+                    <!-- description2 -->
+                </p>
+            </section>
+
+            <section class="article-section">
+                <h2>Health Benefits</h2>
+                <p id="healthContent">
+                    <!-- description3 -->
+                </p>
+            </section>
+
+            <section class="article-section">
+                <h2>Around the World</h2>
+                <p id="aroundWorldContent">
+                    <!-- description4 -->
+                </p>
+            </section>
+        </div>
+    </article>
+</main>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="waves">
+            <div class="wave" id="wave1"></div>
+            <div class="wave" id="wave2"></div>
+            <div class="wave" id="wave3"></div>
+            <div class="wave" id="wave4"></div>
+        </div>
+        <ul class="social-icon">
+            <li class="social-icon__item"><a class="social-icon__link" href="https://wa.me/+77758484535"><ion-icon name="logo-whatsapp"></ion-icon></a></li>
+            <li class="social-icon__item"><a class="social-icon__link" href="#"><ion-icon name="logo-linkedin"></ion-icon></a></li>
+            <li class="social-icon__item"><a class="social-icon__link" href="https://www.instagram.com/da3goo"><ion-icon name="logo-instagram"></ion-icon></a></li>
+        </ul>
+        <ul class="menu">
+            <li class="menu__item"><a class="menu__link" href="/client/main_page.html">Home</a></li>
+            <li class="menu__item"><a class="menu__link" href="/client/aboutUs.html">About</a></li>
+            <li class="menu__item"><a class="menu__link" href="/client/aboutUs.html">Contact</a></li>
+        </ul>
+        <p>&copy;2024 Roots of Flavor - Food History | All Rights Reserved</p>
+    </div>
+
+    
+    <script src="general.js">
+        
+    </script>
+
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

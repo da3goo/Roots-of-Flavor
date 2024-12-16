@@ -1,0 +1,126 @@
+/* Button Styling */
+.darkModeBtn {
+    display: inline-block;
+    background-color: #343a40; 
+    color: white; 
+    border: 1px solid #343a40; 
+    padding: 0.375rem 0.75rem; 
+    font-size: 1rem;
+    font-weight: 400; 
+    text-align: center; 
+    border-radius: 0.25rem;
+    cursor: pointer; 
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; 
+}
+
+/* Button Hover and Active states */
+.darkModeBtn:hover, .darkModeBtn:focus {
+    background-color: #23272b; 
+    border-color: #1d2124; 
+    text-decoration: none; 
+}
+
+.darkModeBtn:active {
+    background-color: #1d2124; 
+    border-color: #171a1d; 
+}
+    
+body {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.dark-mode .nav-bar {
+    background: #1c1c1c;
+    transition: background 0.5s ease;
+}
+
+.navbar a {
+    transition: color 0.5s ease;
+}
+
+.dark-mode .navbar a {
+    color: #f5f5f5;
+}
+
+.card-content p {
+    transition: color 0.5s ease;
+}
+
+.dark-mode .card-content p {
+    color: #e0e0e0;
+}
+
+.card {
+    transition: background-color 0.5s ease;
+}
+
+.dark-mode .card {
+    background-color: #1c1c1c;
+}
+
+.submenu {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.dark-mode .submenu {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+
+.chevron-down,
+.chevron-up {
+    transition: fill 0.5s ease;
+}
+
+.dark-mode .chevron-down,
+.dark-mode .chevron-up {
+    fill: #e0e0e0;
+}
+body.dark-mode .btn-circle {
+    background-color: #2c3e50; 
+    color: #e0e0e0; 
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4); 
+}
+
+
+.dark-mode .login-container img{
+    filter: invert(1);
+    transition: 0.5s ease;
+}
+
+
+@keyframes darkModeEffect {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+        background-color: #ffdd00;
+    }
+    50% {
+        transform: scale(1.5);
+        box-shadow: 0 0 150px 150px rgba(0, 0, 0, 0.7); 
+        background-color: #2c3e50;
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+        background-color: #2c3e50; 
+    }
+}
+body.dark-mode .darkModeBtn {
+    animation: darkModeEffect 1s forwards; 
+    background-color: #2c3e50; 
+    color: #e0e0e0; 
+}
+.dark-mode .title p{
+    color: #e0e0e0;
+}
+.dark-mode .title h1{
+    color: #e0e0e0;
+    font-weight: bold;
+}
+

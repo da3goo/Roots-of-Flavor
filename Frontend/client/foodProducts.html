@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food products</title>
+    <link rel="stylesheet" href="navbarHeader.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="darkModeFoods.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+
+</head>
+<style>
+    .dishesText{
+        text-align: center;
+        margin-top: 50px;
+    }
+    
+    *{
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+        font-family: sans-serif;
+    }
+    body {
+        background-color: beige;
+    } 
+
+    .card-container{
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .card {
+        width: 370px;
+        height: 460px;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
+        margin: 35px;
+
+    }
+
+    .card img {
+        width: 100%;
+        height: auto;
+    }
+
+    .card-content {
+        padding: 16px;
+    }
+
+    .card-content h3 {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .card-content p {
+        color: #666;
+        font-size: 15px;
+        line-height: 1.3;
+    }
+
+    .card-content .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #333;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 16px;
+        color: #fff;
+    }
+
+    .btn:hover {
+        background-color: #f0f0f0;
+        color: #333;
+        border: 1px solid #333;
+    }
+</style>
+
+<body>
+     <!-- Header -->
+     <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <a href="main_page.html">
+                    <img src="../pictures/logo.png" alt="Logo" width="85">
+                </a>
+            </div>
+
+            <div class="login-container">
+                <a id="logInText" class="login-link">
+                    <span>Login</span>
+                </a>
+                <img src="../pictures/login-avatar.png" alt="Login Icon" width="22" height="22">
+                <a id="logOutText" class="login-link" style="display:none;">
+                    <span class="qwer123">Logout</span><br>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <button class="darkModeBtn" id="darkModeBtn">🌙 Dark Mode</button>
+        <a href="aboutUs.html">About Us</a>
+        <div class="menu-item">
+            <a href="#" class="menu-link" id="foodsLink">
+                Foods
+                <span class="icon">
+                    <svg class="chevron-down icon-down" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                    </svg>
+                    <svg class="chevron-up icon-up" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"/>
+                    </svg>
+                </span>
+            </a>
+            <div class="submenu" id="foodsSubmenu">
+                <a href="dishes.html" id="dishesLink">Dishes</a>
+                <a href="foodProducts.html" id="foodProductsLink">Food Products</a>
+                <a href="beverages.html">Beverages</a>
+            </div>
+        </div>
+        <a href="dish_map.html" id="dishMapLink">Map</a>
+        <a href="quiz.html">Quiz</a>
+    </nav>
+
+    <h2 class="dishesText">Food products</h2>
+
+    <!-- Modal Login -->
+    <div id="loginModal" class="modal loginModal">
+        <div class="modal-content loginModal-content">
+            <span class="closeBtnLoginModal">&times;</span>
+            <h2 class="modal-title loginText2">Login</h2>
+            <form id="loginForm" class="modal-form">
+                <label for="emailInput" class="form-label">Email:</label>
+                <input type="email" id="emailInput" class="form-input" required>
+                <br>
+                <label for="passwordInput" class="form-label">Password:</label>
+                <input type="password" id="passwordInput" class="form-input" required>
+                <br>
+                <p class="modal-footer">First time here? <a id="registerText" href="#" class="modal-link">Register</a></p>
+                <br>
+                <button type="submit" class="modal-button">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Register -->
+    <div id="registerModal" class="modal registerModal">
+        <div class="modal-content registerModal-content">
+            <span class="closeBtnRegisterModal">&times;</span>
+            <h2 class="modal-title">Register</h2>
+            <form id="registerForm" class="modal-form">
+                <label for="nameInput" class="form-label">Name:</label>
+                <input type="text" id="nameRegiserInput" class="form-input" required>
+
+                <label for="surnameInput" class="form-label">Surname:</label>
+                <input type="text" id="surnameRegisterInput" class="form-input">
+
+                <label for="emailRegisterInput" class="form-label">Email:</label>
+                <input type="email" id="emailRegisterInput" class="form-input" required>
+
+                <label for="passwordRegisterInput" class="form-label">Password:</label>
+                <input type="password" id="passwordRegisterInput" class="form-input" required>
+
+                <button type="submit" class="modal-button">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Food Products  -->
+     <!-- First row  -->
+    <section id="dishesSection" class="dishesSection">
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/cheddar.png" alt="Cheddar">
+                <div class="card-content">
+                    <h3>Cheddar</h3>
+                    <br>
+                    <h4 class="country">
+                        England
+                    </h4>
+                    <br>
+                    <p>This sharp cow's milk cheese is one of the most popular cheeses in the world today, and it was first produced in the village of Cheddar in Somerset county, England in the 12th century. Cheddar is a hard cheese made from pasteurized cow's ...</p>
+                    <br><a href="/allfoods/general.html?name=Cheddar" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/kabanosyStaropolskie.png" alt="kabanosyStaropolskie">
+                <div class="card-content">
+                    <h3>Kabanosy Staropolskie</h3>
+                    <br>
+                    <h4 class="country">
+                        Poland
+                    </h4>   
+                    <br><br>
+                    <p>Kabanosy are long, thin, and sometimes very dry sausages that come in pairs. Their name refers to a 19th-century term kaban or kabanek - young hogs that were fattened with potatoes, and their meat was commonly called</p>
+                    <a href="/allfoods/general.html?name=Kabanosy Staropolskie" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/nori.png" alt="Nori">
+                <div class="card-content">
+                    <h3>Nori</h3>
+                    <br>
+                    <h4 class="country">Japan</h4>
+                    <br><br>
+                    <p>Nori is the traditional Japanese ingredient created out of processed seaweed, more specifically the red algae Porphyra. The production starts with rinsing, draining, and slicing seaweed, which is later pressed and dried to create the rect...</p>
+                    <a href="/allfoods/general.html?name=Nori" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/farinedeBléNoir.png" alt="farinedeBleNoir">
+                <div class="card-content">
+                    <h3>Farine de Blé Noir</h3>
+                    <br>
+                    <h4 class="country">
+                        France
+                    </h4>
+                    <br><br>
+                    <p>The top quality buckwheat flour called Farine de Blé Boir de Bretagne is produced from La Harpe and Tetra Harpe buckwheat cultivars traditionally grown in the French region of Brittany. The flour has a rich, stron...</p>
+                    <a href="/allfoods/general.html?name=Farine de Blé Noir de Bretagne" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/pepperoni.png" alt="pepperoni">
+                <div class="card-content">
+                    <h3>Pepperoni</h3>
+                    <br>
+                    <h4 class="country">United States of America</h4>
+                    <br><br>
+                    <p>Traditional American pepperoni is a dry sausage that is smoked and air dried, although sometimes it can also be cooked. It is made from pork, beef, or a combination of both, usually 30% beef and 70% pork. The sausage is typically soft, wi...</p>
+                    <a href="/allfoods/general.html?name=Pepperoni" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/zagorskiMlinci.png" alt="zagorskiMlinci">
+                <div class="card-content">
+                    <h3>Zagorski mlinci</h3>
+                    <br>
+                    <h4 class="country">
+                        Croaita
+                    </h4>   
+                    <br>
+                    <p>This traditional Croatian cross between pasta and flatbread is made with wheat flour (type 550) and water, with the occasional addition of lard and eggs (in which case it does not meet the standards necessary for its PGI status). To make mlinc...</p>
+                    <a href="/allfoods/general.html?name=Zagorski Mlinci" class="btn">Read more</a>
+                </div>
+            </div>
+
+            
+
+        </div>
+    </section>
+
+
+
+    <!-- footer  -->
+    <footer class="footer">
+        <div class="waves">
+          <div class="wave" id="wave1"></div>
+          <div class="wave" id="wave2"></div>
+          <div class="wave" id="wave3"></div>
+          <div class="wave" id="wave4"></div>
+        </div>
+        <ul class="social-icon">
+          <li class="social-icon__item"><a class="social-icon__link" href="https://wa.me/+77758484535">
+              <ion-icon name="logo-whatsapp"></ion-icon>
+            </a></li>
+          
+          <li class="social-icon__item"><a class="social-icon__link" href="#">
+              <ion-icon name="logo-linkedin"></ion-icon>
+            </a></li>
+          <li class="social-icon__item"><a class="social-icon__link" href="https://www.instagram.com/da3goo">
+              <ion-icon name="logo-instagram"></ion-icon>
+            </a></li>
+        </ul>
+        <ul class="menu">
+          <li class="menu__item"><a class="menu__link" href="main_page.html">Home</a></li>
+          <li class="menu__item"><a class="menu__link" href="aboutUs.html">About</a></li>
+          <li class="menu__item"><a class="menu__link" href="aboutUs.html">Contact</a></li>
+    
+        </ul>
+        <p>&copy;2024 Roots of Flavor - Food History | All Rights Reserved</p>
+      </footer>
+    <script src="navbarHeader.js"></script>
+    <script>
+        document.getElementById('foodsLink').style.color = '#ff6347';
+        document.getElementById('foodsLink').style.textDecoration = 'underline';
+        document.getElementById('foodProductsLink').style.color = '#ff6347';
+        document.getElementById('foodProductsLink').style.textDecoration = 'underline';
+        document.getElementById('foodProductsLink').style.fontWeight = 'bold';
+
+        // Темный режим
+        const darkModeToggle = document.getElementById('darkModeBtn');
+        const body = document.body;
+
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            body.classList.add('dark-mode');
+        }
+
+        // Обработчик кнопки переключения
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'enabled');
+            } else {
+                localStorage.setItem('dark-mode', 'disabled');
+            }
+        });
+    </script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

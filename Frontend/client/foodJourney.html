@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Journey</title>
+    <link rel="stylesheet" href="navbarHeader.css">
+    <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="darkModeFoods.css">
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+
+</head>
+<style>
+    .dishesText {
+        text-align: center;
+        margin-top: 50px;
+    }
+    
+    *{
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+        font-family: sans-serif;
+    }
+    body {
+        background-color: beige;
+    }
+
+    .card-container{
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .card{
+        width: 370px;
+        height: 460px;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0px 2px 4px rgba(0,0,0,0.2);
+        margin: 35px;
+
+    }
+
+    .card img {
+        width: 100%;
+        height: auto;
+    }
+
+    .card-content {
+        padding: 16px;
+    }
+
+    .card-content h3 {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .card-content p {
+        color: #666;
+        font-size: 15px;
+        line-height: 1.3;
+    }
+
+    .card-content .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #333;
+        text-decoration: none;
+        border-radius: 4px;
+        margin-top: 16px;
+        color: #fff;
+    }
+
+    .btn:hover {
+        background-color: #f0f0f0;
+        color: #333;
+        border: 1px solid #333;
+    }
+
+</style>
+<body>
+     <!-- Header -->
+     <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <a href="main_page.html">
+                    <img src="../pictures/logo.png" alt="Logo" width="85">
+                </a>
+            </div>
+
+            <div class="login-container">
+                <a id="logInText" class="login-link">
+                    <span>Login</span>
+                </a>
+                <img src="../pictures/login-avatar.png" alt="Login Icon" width="22" height="22">
+                <a id="logOutText" class="login-link" style="display:none;">
+                    <span class="qwer123">Logout</span><br>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <button class="darkModeBtn" id="darkModeBtn">🌙 Dark Mode</button>
+        <a href="aboutUs.html">About Us</a>
+        <div class="menu-item">
+            <a href="#" class="menu-link" id="foodsLink">
+                Foods
+                <span class="icon">
+                    <svg class="chevron-down icon-down" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                    </svg>
+                    <svg class="chevron-up icon-up" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"/>
+                    </svg>
+                </span>
+            </a>
+            <div class="submenu" id="foodsSubmenu">
+                <a href="dishes.html" id="dishesLink">Dishes</a>
+                <a href="foodProducts.html">Food Products</a>
+                <a href="beverages.html">Beverages</a>
+            </div>
+        </div>
+        <a href="dish_map.html" id="dishMapLink">Map</a>
+        <a href="quiz.html">Quiz</a>
+    </nav>
+
+    <h2 class="dishesText">Food Journey</h2>
+
+    <!-- Modal Login -->
+    <div id="loginModal" class="modal loginModal">
+        <div class="modal-content loginModal-content">
+            <span class="closeBtnLoginModal">&times;</span>
+            <h2 class="modal-title loginText2">Login</h2>
+            <form id="loginForm" class="modal-form">
+                <label for="emailInput" class="form-label">Email:</label>
+                <input type="email" id="emailInput" class="form-input" required>
+                <br>
+                <label for="passwordInput" class="form-label">Password:</label>
+                <input type="password" id="passwordInput" class="form-input" required>
+                <br>
+                <p class="modal-footer">First time here? <a id="registerText" href="#" class="modal-link">Register</a></p>
+                <br>
+                <button type="submit" class="modal-button">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Register -->
+    <div id="registerModal" class="modal registerModal">
+        <div class="modal-content registerModal-content">
+            <span class="closeBtnRegisterModal">&times;</span>
+            <h2 class="modal-title">Register</h2>
+            <form id="registerForm" class="modal-form">
+                <label for="nameInput" class="form-label">Name:</label>
+                <input type="text" id="nameRegiserInput" class="form-input" required>
+
+                <label for="surnameInput" class="form-label">Surname:</label>
+                <input type="text" id="surnameRegisterInput" class="form-input">
+
+                <label for="emailRegisterInput" class="form-label">Email:</label>
+                <input type="email" id="emailRegisterInput" class="form-input" required>
+
+                <label for="passwordRegisterInput" class="form-label">Password:</label>
+                <input type="password" id="passwordRegisterInput" class="form-input" required>
+
+                <button type="submit" class="modal-button">Register</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Foods  -->
+    <section id="dishesSection" class="dishesSection">
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/kimchi.png" alt="Kimchi">
+                <div class="card-content">
+                    <h3>Kimchi</h3>
+                    <br>
+                    <h4 class="country">
+                        Korea
+                    </h4>
+                    <br>
+                    <p>Although many people get a chill through their spine at the very mention of the word pickles, Koreans have found a way to make fermented pickled vegetables interesting, tasty and titillating. A classic starter or a side dish to any Korean...</p>
+                    <br><a href="/allfoods/kimchi.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/croissant2.png" alt="Croissant">
+                <div class="card-content">
+                    <h3>Croissant</h3>
+                    <br>
+                    <h4 class="country">
+                        France
+                    </h4>   
+                    <br>
+                    <p>These flaky, golden-colored, crescent-shaped pastries are best made with pure butter and a slightly sweet yeast dough. If made properly, the yellow-white interior should be just the slightest bit elastic when pulled from the center, ready to be co...</p>
+                    <a href="/allfoods/croissant.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/ramen.png" alt="Ramen">
+                <div class="card-content">
+                    <h3>Ramen</h3>
+                    <br>
+                    <h4 class="country">Japan</h4>
+                    <br>
+                    <p>Ramen is a noodle soup that first appeared in Japan in 1910, when Chinese cooks combined the noodles with a salty broth. These curly noodles were of bright yellow color and more elastic than the Japanese noodles prepared at the time – the do... </p>
+                    <a href="/allfoods/ramen.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- second row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/burger.png" alt="burger">
+                <div class="card-content">
+                    <h3>Burger</h3>
+                    <br>
+                    <h4 class="country">
+                        USA
+                    </h4>
+                    <br>
+                    <p>A quintessential American food, burger evolved from the German Deutsches beefsteak, according to the New York Times food critic Mimi Sheraton. Its other name (hamburger) is a result of the fact that many German immigrant... </p>
+                    <br><a href="/allfoods/burger.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/beshbarmak2.png" alt="Beshbarmak">
+                <div class="card-content">
+                    <h3>Beshbarmak</h3>
+                    <br>
+                    <h4 class="country">
+                        Kazakhstan
+                    </h4>
+                    <br>
+                    <p>Beshbarmak is probably the most popular Kazakh dish. The name of the dish can be translated as five fingers, referring to the nomadic tribes who lived in Central Asia and would eat the dish with their hands. Cooked horse, mutton, beef, or...</p>
+                    <br><a href="/allfoods/beshbarmak.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/pekingDuck.jpg" alt="Peeking Duck" >
+                <div class="card-content">
+                    <h3>Peking Duck</h3>
+                    <br>
+                    <h4 class="country">
+                        China
+                    </h4>
+                    <br>
+                    <p>The history of Peking duck goes back to China's Yuan Dynasty of the 13th century. Bianyifang, Beijing's oldest restaurant specializing in Peking duck has been in business since the Jiajing reign of the 16th century, serving as a testament to the popularity of this succulent, tantalizing ... </p>
+                    <a href="/allfoods/pekingDuck.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- third row  -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/ossobucco2.jpg" alt="OssoBucco">
+                <div class="card-content">
+                    <h3>Osso bucco</h3>
+                    <br>
+                    <h4 class="country">
+                        Italy
+                    </h4>
+                    <br>
+                    <p>Locally known as l'oss bus a la Milanesa, these wine-braised veal shanks are a classic of northern Italian cuisine and one of Milan's most cherished signature dishes. Ossobuco is believed to have been prepared in local trattorias for centuries,...</p>
+                    <br><a href="/allfoods/ossoBucco.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/meatPie2.jpg" alt="MeatPie">
+                <div class="card-content">
+                    <h3>Meat Pie</h3>
+                    <br>
+                    <h4 class="country">
+                        Austalia
+                    </h4>
+                    <br>
+                    <p>Australian and New Zealander meat pie is made with flaky pastry that is filled with gravy and minced meat. Of course, numerous variations exist, so the filling can also be made with onions, chicken and asparagus, mushrooms, cheese, crocodile meat, vegetables, or...
+                    </p>
+                    <a href="/allfoods/meatPie.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/pizzaMargherita.png" alt="pizzaMargherita" >
+                <div class="card-content">
+                    <h3>Pizza Margherita</h3>
+                    <br>
+                    <h4 class="country">
+                        Italy
+                    </h4>
+                    <br>
+                    <p>Pizza Margherita is a delicacy that is literally fit for a queen. In 1889, Queen Margherita of Savoy visited Naples, where she was served a pizza that was made to resemble the colors of the Italian flag: red tomatoes, white mozzarella che...</p>
+                    <br><a href="/allfoods/pizzaMargherita.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fourth row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/tacos.png" alt="Tacos">
+                <div class="card-content">
+                    <h3>Tacos</h3>
+                    <br>
+                    <h4 class="country">
+                        Mexico
+                    </h4>
+                    <br>
+                    <p>Tacos are the national dish of Mexico, dating back to the Mexican silver mines of the 18th century, when the word taco referred to gunpowder that was wrapped in a piece of paper and inserted into rocks. It was used to excavate the preciou... </p>
+                    <br><a href="/allfoods/tacos.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/shawarma.png" alt="Shawarma">
+                <div class="card-content">
+                    <h3>Shawarma</h3>
+                    <br>
+                    <h4 class="country">
+                        Lebanon
+                    </h4>
+                    <br>
+                    <p>Marinated and spit-roasted, shawarma is a delicious Middle Eastern meat treat whose origins can be traced back to the Ottoman Empire era, while its name stems from the Arabic pronunciation of the Turkish word çevirme (lit. to turn;...</p>
+
+                    
+                    <a href="/allfoods/shawarma.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/sushi.png" alt="sushi" >
+                <div class="card-content">
+                    <h3>Sushi</h3>
+                    <br>
+                    <h4 class="country">
+                        Japan
+                    </h4>
+                    <p>Sushi is Japan's most famous culinary representative, typically made with rice and fillings which have been rolled inside a sheet of dry seaweed. However, the term sushi is actually an umbrella term covering a wide range of subvarieties w...</p>
+                    <br><a href="/allfoods/sushi.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fifth row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/onigiri.png" alt="Onigiri">
+                <div class="card-content">
+                    <h3>Onigiri</h3>
+                    <br>
+                    <h4 class="country">
+                        Japan
+                    </h4>
+                    <br>
+                    <p>Moist, chewy, and hearty, onigiri or omusubi are Japanese rice balls and a favorite picnic food since the 11th century, when they were known as tonjiki and recorded as such in the diary of Lady Murasaki, author of The Tale of Genji... </p>
+                    <br><a href="/allfoods/onigiri.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/baguette.png" alt="baguette">
+                <div class="card-content">
+                    <h3>Bagguete</h3>
+                    <br>
+                    <h4 class="country">
+                        France
+                    </h4>
+                    <br>
+                    <p>Probably the most iconic image of France, this long, light, airy bread with its characteristically crispy crust dates back to the 19th century, when wheat and white breads were no longer a privilege of the rich. Baguettes were made even before the... </p>
+
+                    
+                    <a href="/allfoods/bagguette.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/kumpir.png" alt="kumpir" >
+                <div class="card-content">
+                    <h3>Kumpir</h3>
+                    <br>
+                    <h4 class="country">
+                        Turkey
+                    </h4><br>
+                    <p>In Türkiye, this staple street food item is prepared with a whole baked potato that is cut through the middle and comes filled with a combination of puréed potatoes, butter, and kaşar cheese. The potatoes are usually large in ... </p>
+                    <br><a href="/allfoods/kumpir.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+        <!-- Sixth row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/vodka.png" alt="Vodka">
+                <div class="card-content">
+                    <h3>Vodka</h3>
+                    <br>
+                    <h4 class="country">
+                        Russia
+                    </h4>
+                    <br>
+                    <p>Vodka is a distillate that is mainly produced from fermented grains or potatoes, and even though many purists disagree, fruit or molasses can also be used. The base material can be distilled many times, and each distillation produces stro...</p>
+                    <a href="/allfoods/vodka.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/mojito.png" alt="mojito">
+                <div class="card-content">
+                    <h3>Mojito</h3>
+                    <br>
+                    <h4 class="country">
+                        Cuba
+                    </h4>   
+                    <br><br>    
+                    <p>Sugary, refreshing, and herbaceous, Mojito is a traditional Cuban cocktail based on rum as the key ingredient. It has a relatively low alcohol content (about 10%). Although Havana is considered its birthplace, the origin of this simple co...</p>
+                    <a href="/allfoods/mojito.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/sake.png" alt="Sake">
+                <div class="card-content">
+                    <h3>Sake</h3>
+                    <br>    
+                    <h4 class="country">Japan</h4>
+                    <br><br>
+                    <p>Sake is the most popular Japanese drink whose first written mention dates back to 3rd century. In its basic form, the drink is made by brewing yeast, koji mold, water and polished rice. All these elements influence the quality of...</p>
+                    <a href="/allfoods/sake.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+        <!-- Seventh row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/kumis.png" alt="Kumis">
+                <div class="card-content">
+                    <h3>Kumis</h3>
+                    <br>
+                    <h4 class="country">
+                        Mongolia
+                    </h4>
+                    <br>
+                    <p>Kumis is a fermented dairy product that originated in ancient Mongolia, but over time it has spread throughout Central Asia. The drink is similar to kefir, but is traditionally produced from mare’s raw milk, which contains more sugar than goat’s or cow’s milk, and it is...</p>
+                    <a href="/allfoods/kumis.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/cappuccino.png" alt="cappuccino">
+                <div class="card-content">
+                    <h3>Cappuccino</h3>
+                    <br>
+                    <h4 class="country">
+                        Italy
+                    </h4>   
+                    <br><br>    
+                    <p>Cappuccino is an Italian coffee made with espresso and steam-foamed milk. It is believed that it developed from kapuziner—a coffee-based beverage that was enjoyed in Austrian coffee houses in the 18th century. The first men... </p>
+                    <a href="/allfoods/cappuccino.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/cremeDeCacao.png" alt="cremeDeCacao">
+                <div class="card-content">
+                    <h3>Crème de cacao</h3>
+                    <br>    
+                    <h4 class="country">France</h4>
+                    <br><br>
+                    <p>Crème de cacao is a liqueur made from cocoa beans. Depending on the type of production, it can be white (blanc) or dark (brun), and it is often additionally flavored with vanilla. The dark version usually has a more intense flavor....</p>
+                    <a href="/allfoods/cremeDeCacao.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+        <!-- Eighths row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/appleJack.png" alt="appleJack">
+                <div class="card-content">
+                    <h3>AppleJack</h3>
+                    <br>
+                    <h4 class="country">
+                        United States of America
+                    </h4>
+                    <br><br>
+                    <p>Applejack is often dubbed as one of the oldest American spirits. Essentially, it is an apple brandy that supposedly originated during colonial times. It is believed that the original version was made as a cider that was fermented and left...</p>
+                    <a href="/allfoods/appleJack.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/gyokuro.png" alt="gyokuro">
+                <div class="card-content">
+                    <h3>Gyokuro</h3>
+                    <br>
+                    <h4 class="country">
+                        Japan
+                    </h4>   
+                    <br><br>    
+                    <p>Gyokuro is a Japanese green tea of exceptional quality. It is a type of shade-grown tea—the bush is covered two weeks before the harvest. The technique results in tender, emerald-colored leaves packed with green notes. This exclusiv... </p>
+                    <a href="/allfoods/gyokuro.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/russianCaravan.png" alt="russianCaravan">
+                <div class="card-content">
+                    <h3>Russian Caravan</h3>
+                    <br>    
+                    <h4 class="country">China</h4>
+                    <br>
+                    <p>Russian Caravan is a tea blend that is typically made with Chinese oolong and black teas. The blends may vary, but it mostly consists of at least two tea types, while the most common combinations include Keemun black tea, the smoky Lapsan...</p>
+                    <a href="/allfoods/russianCaravan.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+        <!-- Nineth row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/cheddar.png" alt="Cheddar">
+                <div class="card-content">
+                    <h3>Cheddar</h3>
+                    <br>
+                    <h4 class="country">
+                        England
+                    </h4>
+                    <br>
+                    <p>This sharp cow's milk cheese is one of the most popular cheeses in the world today, and it was first produced in the village of Cheddar in Somerset county, England in the 12th century. Cheddar is a hard cheese made from pasteurized cow's ...</p>
+                    <br><a href="/allfoods/cheddar.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/kabanosyStaropolskie.png" alt="kabanosyStaropolskie">
+                <div class="card-content">
+                    <h3>Kabanosy Staropolskie</h3>
+                    <br>
+                    <h4 class="country">
+                        Poland
+                    </h4>   
+                    <br><br>
+                    <p>Kabanosy are long, thin, and sometimes very dry sausages that come in pairs. Their name refers to a 19th-century term kaban or kabanek - young hogs that were fattened with potatoes, and their meat was commonly called</p>
+                    <a href="/allfoods/kabanosyStaropolskie.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/nori.png" alt="Nori">
+                <div class="card-content">
+                    <h3>Nori</h3>
+                    <br>
+                    <h4 class="country">Japan</h4>
+                    <br><br>
+                    <p>Nori is the traditional Japanese ingredient created out of processed seaweed, more specifically the red algae Porphyra. The production starts with rinsing, draining, and slicing seaweed, which is later pressed and dried to create the rect...</p>
+                    <a href="/allfoods/nori.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+        <!-- Tenth row -->
+        <div class="card-container">
+            <div class="card">
+                <img src="../pictures/farinedeBléNoir.png" alt="farinedeBleNoir">
+                <div class="card-content">
+                    <h3>Farine de Blé Noir</h3>
+                    <br>
+                    <h4 class="country">
+                        France
+                    </h4>
+                    <br><br>
+                    <p>The top quality buckwheat flour called Farine de Blé Boir de Bretagne is produced from La Harpe and Tetra Harpe buckwheat cultivars traditionally grown in the French region of Brittany. The flour has a rich, stron...</p>
+                    <a href="/allfoods/farinedeBleNoir.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/pepperoni.png" alt="pepperoni">
+                <div class="card-content">
+                    <h3>Pepperoni</h3>
+                    <br>
+                    <h4 class="country">United States of America</h4>
+                    <br><br>
+                    <p>Traditional American pepperoni is a dry sausage that is smoked and air dried, although sometimes it can also be cooked. It is made from pork, beef, or a combination of both, usually 30% beef and 70% pork. The sausage is typically soft, wi...</p>
+                    <a href="/allfoods/pepperoni.html" class="btn">Read more</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <img src="../pictures/zagorskiMlinci.png" alt="zagorskiMlinci">
+                <div class="card-content">
+                    <h3>Zagorski mlinci</h3>
+                    <br>
+                    <h4 class="country">
+                        Croaita
+                    </h4>   
+                    <br>
+                    <p>This traditional Croatian cross between pasta and flatbread is made with wheat flour (type 550) and water, with the occasional addition of lard and eggs (in which case it does not meet the standards necessary for its PGI status). To make mlinc...</p>
+                    <a href="/allfoods/zagorskiMlinci.html" class="btn">Read more</a>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <!-- footer  -->
+    <footer class="footer">
+        <div class="waves">
+          <div class="wave" id="wave1"></div>
+          <div class="wave" id="wave2"></div>
+          <div class="wave" id="wave3"></div>
+          <div class="wave" id="wave4"></div>
+        </div>
+        <ul class="social-icon">
+          <li class="social-icon__item"><a class="social-icon__link" href="https://wa.me/+77758484535">
+              <ion-icon name="logo-whatsapp"></ion-icon>
+            </a></li>
+          
+          <li class="social-icon__item"><a class="social-icon__link" href="#">
+              <ion-icon name="logo-linkedin"></ion-icon>
+            </a></li>
+          <li class="social-icon__item"><a class="social-icon__link" href="https://www.instagram.com/da3goo">
+              <ion-icon name="logo-instagram"></ion-icon>
+            </a></li>
+        </ul>
+        <ul class="menu">
+          <li class="menu__item"><a class="menu__link" href="main_page.html">Home</a></li>
+          <li class="menu__item"><a class="menu__link" href="aboutUs.html">About</a></li>
+          <li class="menu__item"><a class="menu__link" href="aboutUs.html">Contact</a></li>
+    
+        </ul>
+        <p>&copy;2024 Roots of Flavor - Food History | All Rights Reserved</p>
+      </footer>
+    <script src="navbarHeader.js"></script>
+    <script>
+       
+        // Темный режим
+        const darkModeToggle = document.getElementById('darkModeBtn');
+        const body = document.body;
+
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            body.classList.add('dark-mode');
+        }
+
+        // Обработчик кнопки переключения
+        darkModeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('dark-mode', 'enabled');
+            } else {
+                localStorage.setItem('dark-mode', 'disabled');
+            }
+        });
+
+
+
+    </script>
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

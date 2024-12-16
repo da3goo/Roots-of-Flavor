@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Game</title>
+    <link rel="stylesheet" href="startQuiz.css" />
+    <link rel="icon" type="image/png" href="/favicon/favicon-96x96.png" sizes="96x96" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/FoodHistoryProject/favicon/favicon-96x96.png"
+      sizes="96x96"
+    />
+    >
+  </head>
+  <style></style>
+  <body>
+    <div class="quiz-container">
+      <h1>Food Quiz <i class="fa-solid fa-pizza-slice"></i></h1>
+      <div id="timer">Time: 01:00</div>
+      <div id="question-counter">Question 1 of 10</div>
+      <div id="quiz-card">
+        <p id="question"></p>
+        <div id="answers"></div>
+      </div>
+      <button id="next-btn" onclick="nextQuestion()">Next</button>
+      <a id="back-btn" href="quiz.html" onclick="goBack()" style="display: none"
+        >Back</a
+      >
+      <button id="play-again-btn" onclick="playAgain()">Play Again</button>
+      <button id="back-btn" onclick="goBack()" style="display: none">
+        <a href="quiz.html">Back</a>
+      </button>
+
+      <div id="result"></div>
+    </div>
+    <script src="startQuiz.js"></script>
+  </body>
+</html>

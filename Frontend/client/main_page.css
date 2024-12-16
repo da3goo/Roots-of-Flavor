@@ -1,0 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+
+
+:root {
+    --primary-color: #ff6347;
+    --hover-color: #e5533d;
+    --button-background: #ff4a4a;
+    --text-color: #111;
+    --intro-text-color: #696969;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: beige;
+}
+
+
+.main-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 100px 10%;
+}
+
+.intro-text {
+    max-width: 50%;
+}
+
+.intro-text h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.intro-text p {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    color: var(--intro-text-color);
+    margin-bottom: 30px;
+}
+
+
+.cta-button {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-color);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: var(--hover-color);
+}
+
+
+.btn-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 180px;
+    height: 180px;
+    background-color: #ff4a4a;
+    border-radius: 50%;
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; 
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(255, 221, 0, 0.8); 
+}
+
+.btn-circle span {
+    font-family: 'Merriweather', serif;
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    letter-spacing: 2px;
+    text-transform: uppercase; 
+    color: #fff;
+    text-align: center;
+}
+
+.btn-circle:hover {
+    transform: scale(1.05);
+}
+
+.btn-circle:hover span {
+    color: #ffe4b5; 
+    text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3); 
+}
+
+/* Button Styling */
+.darkModeBtn {
+    display: inline-block;
+    background-color: #343a40; 
+    color: white; 
+    border: 1px solid #343a40; 
+    padding: 0.375rem 0.75rem; 
+    font-size: 1rem; 
+    font-weight: 400; 
+    text-align: center; 
+    border-radius: 0.25rem; 
+    cursor: pointer; 
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out; 
+}
+
+
+.darkModeBtn:hover, .darkModeBtn:focus {
+    background-color: #23272b; 
+    border-color: #1d2124; 
+    text-decoration: none; 
+}
+
+.darkModeBtn:active {
+    background-color: #1d2124; 
+    border-color: #171a1d; 
+}
+/* Dark mode  */
+    
+body {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+.dark-mode .nav-bar {
+    background: #1c1c1c;
+    transition: background 0.5s ease;
+}
+
+.navbar a {
+    transition: color 0.5s ease;
+}
+
+.dark-mode .navbar a {
+    color: #f5f5f5;
+}
+
+
+
+.dark-mode .card-content p {
+    color: #e0e0e0;
+}
+
+.card {
+    transition: background-color 0.5s ease;
+}
+
+.dark-mode .card {
+    background-color: #1c1c1c;
+}
+
+.submenu {
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.dark-mode .submenu {
+    background-color: #1c1c1c;
+    color: #fff;
+}
+
+.chevron-down,
+.chevron-up {
+    transition: fill 0.5s ease;
+}
+
+.dark-mode .chevron-down,
+.dark-mode .chevron-up {
+    fill: #e0e0e0;
+}
+body.dark-mode .btn-circle {
+    background-color: #2c3e50; 
+    color: #e0e0e0; 
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+}
+
+
+
+.dark-mode .login-container img{
+    filter: invert(1);
+    transition: 0.5s ease;
+}
+
+@keyframes darkModeEffect {
+    0% {
+        transform: scale(1);
+        background-color: transparent;
+    }
+    50% {
+        transform: scale(1.2); 
+        background-color: #2c3e50; 
+    }
+    100% {
+        transform: scale(1); 
+        background-color: #2c3e50; 
+    }
+}
+
+body.dark-mode .btn-circle {
+    animation: darkModeEffect 1s forwards;
+}
+
+
+body.dark-mode .icon-chevron-right {
+    filter: invert(1);
+}
+body.dark-mode .btn-circle:hover {
+
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.9); 
+}
+
+
+
+
