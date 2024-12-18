@@ -85,7 +85,7 @@ document.getElementById('foodsLink').addEventListener('click', function(event) {
 //server
 
 
-// Логика для формы логина
+// Login
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -127,8 +127,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 });
 
 
-
-
 // Логика для кнопки "Logout"
 document.getElementById('logOutText').addEventListener('click', async function () {
     try {
@@ -136,33 +134,30 @@ document.getElementById('logOutText').addEventListener('click', async function (
 
         const response = await fetch('http://localhost:8080/logout', {
             method: 'POST',
-            credentials: 'include' // Важно передать куки для сессии
+            credentials: 'include' 
         });
 
         if (response.ok) {
             console.log("Logout successful.");
             
-            // Логика после успешного выхода
+           
             userIsOnline = false;
             currentUser = null;
 
-            // Перенаправляем пользователя на главную или страницу логина
-            window.location.href = '/Frontend/client/main_page.html'; // Укажите путь к вашей главной странице
+            
+            window.location.href = '/Frontend/client/main_page.html'; 
         } else {
-            // Обработка ошибок, если сервер вернул неуспешный статус
+            
             const result = await response.json();
             console.error("Logout failed:", result);
             alert(result.message || 'Failed to log out. Please try again.');
         }
     } catch (error) {
-        // Логируем ошибку, если возникла проблема на клиентской стороне
+        
         console.error('Logout error:', error);
         alert('Server error. Please try again later.');
     }
 });
-
-
-
 
 
 async function checkUserOnLoad() {
@@ -196,6 +191,44 @@ async function checkUserOnLoad() {
 }
 
 checkUserOnLoad();
+
+
+
+//Reg
+document.getElementById('registerForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('emailRegisterInput').value;
+    const password = document.getElementById('passwordRegisterInput').value;
+    const fullname = document.getElementById('nameRegiserInput').value;
+
+    try {
+        const response = await fetch('http://localhost:8080/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password, fullname: fullname })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log("Registration successful:", result);
+            alert(result.message);  // Сообщение об успешной регистрации
+            window.location.href = '/Frontend/client/main_page.html';
+        } else {
+            console.error("Registration failed:", result);
+            if (response.status === 409) {
+                // Если email уже существует, показываем alert с сообщением
+                alert(result.error || "Email already exists!");  // Если есть error в JSON, покажем его
+            } else {
+                alert("Registration failed!");  // Другие ошибки
+            }
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('An error occurred during registration.');
+    }
+});
 
 
 
