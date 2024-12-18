@@ -1,18 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/handlers"
 	"log"
 	"net/http"
 
-	_ "github.com/lib/pq"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Food struct {
-	ID           int    `json:"id"`
+	ID           uint   `json:"id" gorm:"primaryKey"`
 	Name         string `json:"name"`
 	Description1 string `json:"description1"`
 	Description2 string `json:"description2"`
@@ -22,27 +23,27 @@ type Food struct {
 	Country      string `json:"country"`
 }
 
-var db *sql.DB
+var db *gorm.DB
 
 func init() {
 	var err error
 
-	connStr := "postgres://postgres.omqkkeruydkttwwkdnib:50TADocqYFe4CFTx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
-	db, err = sql.Open("postgres", connStr)
+	// Подключение к базе данных
+	dsn := "postgres://postgres.omqkkeruydkttwwkdnib:50TADocqYFe4CFTx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to connect to the database: ", err)
 	}
 
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Error connecting to the database:", err)
+	// Автоматическая миграция для структуры Food
+	if err := db.AutoMigrate(&Food{}); err != nil {
+		log.Fatal("Failed to migrate database: ", err)
 	}
 }
 
-
 func getFoodByName(w http.ResponseWriter, r *http.Request) {
-
-	foodName := r.URL.Query().Get("name")
+	params := mux.Vars(r)
+	foodName := params["name"]
 	if foodName == "" {
 		sendErrorResponse(w, http.StatusBadRequest, "Name parameter is required")
 		return
@@ -50,14 +51,9 @@ func getFoodByName(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Searching for food: %s\n", foodName)
 
-	query := `SELECT id, food_name, description1, description2, description3, description4, image_url, country 
-			  FROM foods WHERE food_name = $1`
-	row := db.QueryRow(query, foodName)
-
 	var food Food
-	err := row.Scan(&food.ID, &food.Name, &food.Description1, &food.Description2, &food.Description3, &food.Description4, &food.ImageURL, &food.Country)
-	if err != nil {
-		if err == sql.ErrNoRows {
+	if err := db.Where("name = ?", foodName).First(&food).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
 			fmt.Printf("Couldn't find food: %s\n", foodName)
 			sendErrorResponse(w, http.StatusNotFound, "Food not found")
 		} else {
@@ -70,9 +66,8 @@ func getFoodByName(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Found food: %s (ID: %d)\n", food.Name, food.ID)
 
 	w.Header().Set("Content-Type", "application/json")
-
 	if err := json.NewEncoder(w).Encode(food); err != nil {
-		fmt.Printf("Error encoding JSON for food: %s\n", foodName) // Сообщение при ошибке кодирования
+		fmt.Printf("Error encoding JSON for food: %s\n", foodName)
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error encoding JSON: %v", err))
 	}
 }
@@ -82,20 +77,19 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	w.WriteHeader(statusCode)
 
 	errorResponse := map[string]string{"error": message}
-	json.NewEncoder(w).Encode(errorResponse)
+	_ = json.NewEncoder(w).Encode(errorResponse)
 }
 
 func main() {
-
-	http.HandleFunc("/food", getFoodByName)
+	r := mux.NewRouter()
+	r.HandleFunc("/food/{name}", getFoodByName).Methods("GET")
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	log.Println("Starting server on :8080")
-	err := http.ListenAndServe(":8080", handlers.CORS(origins, methods, headers)(http.DefaultServeMux))
-	if err != nil {
+	if err := http.ListenAndServe(":8080", handlers.CORS(origins, methods, headers)(r)); err != nil {
 		log.Fatal("Server failed: ", err)
 	}
 }
