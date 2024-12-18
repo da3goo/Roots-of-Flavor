@@ -43,104 +43,21 @@ window.addEventListener('click', function(event) {
         document.getElementById('registerModal').style.display = 'none';
     }
 });
-
-// Sending login data
-document.getElementById('loginForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const email = document.getElementById('emailInput').value;
-    const password = document.getElementById('passwordInput').value;
-
-    try {
-        const response = await fetch('http://localhost:3000/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            currentUser1 = {
-                username: result.username,
-                email: email
-            };
-
-            localStorage.setItem('userEmail', email);
-
-            document.getElementById('logInText').innerHTML = `<span>${currentUser1.username}</span>`;
-            document.getElementById('loginModal').style.display = 'none';
-            userIsOnline = true;
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        alert('Server error. Please try again later.');
-    }
-});
-
-// Handler for sending registration data
-document.getElementById('registerForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-
-    const username = document.getElementById('nameRegiserInput').value;
-    const usersurname = document.getElementById('surnameRegisterInput').value;
-    const email = document.getElementById('emailRegisterInput').value;
-    const password = document.getElementById('passwordRegisterInput').value;
-    const userstatus = 'user';
-
-    try {
-        const response = await fetch('http://localhost:3000/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, usersurname, email, password, userstatus })
-        });
-
-        if (!response.ok) {
-            throw new Error('Ошибка на сервере. Статус: ' + response.status);
-        }
-
-        const result = await response.json();
-
-        if (result.success) {
-            currentUser1 = { username: result.username, email: email };
-            
-            document.getElementById('logInText').innerHTML = `<span>${currentUser1.username}</span>`;
-            document.getElementById('registerModal').style.display = 'none';
-            userIsOnline = true;
-        } else {
-            alert(result.message || 'Ошибка регистрации');
-        }
-    } catch (error) {
-        console.error('Ошибка регистрации:', error);
-        alert('Registration error. Please try again later.');
-    }
-});
-
 // Opening a registration modal window when clicking "Register"
 document.getElementById('registerText').addEventListener('click', function(event) {
     event.preventDefault();
     document.getElementById('loginModal').style.display = 'none'; 
     document.getElementById('registerModal').style.display = 'block'; 
 });
-
 // Close the registration modal window
 document.querySelector('.closeBtnRegisterModal').addEventListener('click', function() {
     document.getElementById('registerModal').style.display = 'none'; 
 });
 
-// Click on username to show "Log out" button
-document.getElementById('logInText').addEventListener('click', function() {
-    if (userIsOnline) {
-        document.getElementById('logOutText').style.display = 'inline';
-    }
-});
 // Close the login modal window when clicking on the cross
 document.querySelector('.closeBtnLoginModal').addEventListener('click', function() {
     document.getElementById('loginModal').style.display = 'none'; 
 });
-
 
 // Handler for submenu
 document.getElementById('foodsLink').addEventListener('click', function(event) {
@@ -156,53 +73,129 @@ document.getElementById('foodsLink').addEventListener('click', function(event) {
     }
 });
 
-// Function to check user when page loads
-async function checkUserOnLoad() {
+
+
+
+
+
+
+//server
+
+
+// Логика для формы логина
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+
     try {
-        const email = localStorage.getItem('userEmail'); 
+        console.log("Sending login request for email:", email);
+        const response = await fetch('http://localhost:8080/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
+        });
 
-        if (email) {
-            const response = await fetch('http://localhost:3000/check-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
+        console.log("Login response status:", response.status);
+        const result = await response.json();
 
-            const result = await response.json();
-
-            if (result.success) {
-                currentUser1 = {
-                    username: result.username,
-                    email: email,
-                    userStatus: result.userStatus 
-                };
-                
-                document.getElementById('logInText').innerHTML = `<span>${currentUser1.username}</span>`;
-                document.getElementById('logOutText').style.display = 'inline'; 
-
-                if (currentUser1.userStatus === 'admin') {
-                    document.getElementById('offersLink').style.display = 'inline';
-                }
-
-                userIsOnline = true;
-            } else {
-                document.getElementById('logInText').innerHTML = '<span>Login</span>';
-                document.getElementById('logOutText').style.display = 'none';
-                userIsOnline = false;
-            }
+        if (response.ok) {
+            console.log("Login successful for user:", result);
+            userIsOnline = true;
+            currentUser = result;
+            document.getElementById('loginModal').style.display = 'none'; 
+            document.getElementById('logInText').innerHTML = '<a href="profile.html">Profile</a>';
+            document.getElementById('logOutText').style.display = 'inline'; 
         } else {
-            document.getElementById('logInText').innerHTML = '<span>Login</span>';
-            document.getElementById('logOutText').style.display = 'none';
-            userIsOnline = false;
+            
+            console.log("Login failed:", result.error);
+            if (result.error && result.error === "Invalid email or password") {
+                alert('Incorrect email or password. Please try again.');
+            } else {
+                alert(result.error || 'Login failed');
+            }
         }
     } catch (error) {
-        console.error('Check user error:', error);
-        document.getElementById('logInText').innerHTML = '<span>Login</span>';
-        document.getElementById('logOutText').style.display = 'none';
-        userIsOnline = false;
+        console.error('Login error:', error);
+        alert('Server error. Please try again later.');
+    }
+});
+
+
+
+
+// Логика для кнопки "Logout"
+document.getElementById('logOutText').addEventListener('click', async function() {
+    try {
+        console.log("Logout button clicked, sending request to server...");
+        
+        const response = await fetch('http://localhost:8080/logout', {
+            method: 'POST',
+            credentials: 'include' 
+        });
+
+        if (response.ok) {
+            console.log("Logout successful.");
+            
+            userIsOnline = false;
+            currentUser = null;
+            document.getElementById('logInText').innerHTML = '<span>Login</span>';
+            document.getElementById('logOutText').style.display = 'none'; 
+        } else {
+            
+            const result = await response.json();
+            console.error("Logout failed:", result);
+            
+        }
+    } catch (error) {
+        
+        console.error('Logout error:', error);
+        
+    }
+});
+
+
+
+
+
+async function checkUserOnLoad() {
+    try {
+        const response = await fetch('http://localhost:8080/checksession', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            userIsOnline = true;
+            currentUser = result;
+            document.getElementById('loginModal').style.display = 'none'; 
+            document.getElementById('logInText').innerHTML = '<a href="profile.html id="profileStyles">Profile</a>';
+            document.getElementById('logOutText').style.display = 'inline'; 
+
+            
+        } else {
+            userIsOnline = false;
+            currentUser = null;
+            document.getElementById('logInText').innerHTML = '<span>Login</span>';
+            document.getElementById('logOutText').style.display = 'none'; 
+        }
+    } catch (error) {
+        console.error('Error checking session:', error);
+        
+
+        
     }
 }
 
 checkUserOnLoad();
+
+
+
+
+
+
 
 
