@@ -1,0 +1,89 @@
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: grid;
+    background: linear-gradient(135deg, #8bbfff, #4585fc);
+    font-family: Arial, sans-serif;
+}
+
+.profile-card {
+    margin-top: 50px;
+    background-color: #fff;
+    border-radius: 12px;
+    display:flexbox;
+    justify-self: center;
+    
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+    padding: 20px;
+    position: relative;
+}
+.profile-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-top: -60px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+h2 {
+    margin: 10px 0;
+    color: #333;
+}
+p {
+    color: #777;
+    margin: 5px 0;
+}
+
+.edit-btn {
+    margin-top: 20px;
+    background-color: #ff758c;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.edit-btn:hover {
+    background-color: #ff5b77;
+}
+.hidden {
+    display: none;
+}
+#edit-form {
+    flex-direction: column;
+    margin-top: 20px;
+    align-items: center;
+    gap: 15px;
+}
+
+#edit-form input, #edit-form textarea {
+    width: 90%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+#edit-form input:focus, #edit-form textarea:focus {
+    border-color: #ff758c;
+}
+#edit-form button {
+    width: 50%;
+    padding: 10px;
+    background-color: #ff758c;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+#edit-form button:hover {
+    background-color: #ff5b77;
+} 
