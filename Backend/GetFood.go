@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/handlers"
 	"log"
 	"net/http"
 
-	_ "github.com/lib/pq" 
+	"github.com/gorilla/handlers"
+
+	_ "github.com/lib/pq"
 )
 
 type Food struct {
@@ -27,7 +28,7 @@ var db *sql.DB
 func init() {
 	var err error
 
-	connStr := "user=postgres dbname=apProject password=doiORG2424 sslmode=disable"
+	connStr := "postgres://postgres.omqkkeruydkttwwkdnib:50TADocqYFe4CFTx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
