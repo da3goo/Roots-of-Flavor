@@ -1,3 +1,6 @@
+
+
+
 let userIsOnline = false;
 let currentUser = null;
 
@@ -31,7 +34,7 @@ document.getElementById('logOutText').addEventListener('click', async function()
         }
     } catch (error) {
         console.error('Logout error:', error);
-        alert('Server error. Please try again later.');
+        
     }
 });
 
@@ -106,8 +109,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             userIsOnline = true;
             currentUser = result;
             document.getElementById('loginModal').style.display = 'none'; 
-            document.getElementById('logInText').innerHTML = '<a href="profile.html">Profile</a>';
-            document.getElementById('logOutText').style.display = 'inline'; 
+            document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html">Profile</a>';
+            
         } else {
             
             console.log("Login failed:", result.error);
@@ -119,7 +122,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert('Server error. Please try again later.');
+        
     }
 });
 
@@ -127,32 +130,34 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
 
 // Логика для кнопки "Logout"
-document.getElementById('logOutText').addEventListener('click', async function() {
+document.getElementById('logOutText').addEventListener('click', async function () {
     try {
         console.log("Logout button clicked, sending request to server...");
-        
+
         const response = await fetch('http://localhost:8080/logout', {
             method: 'POST',
-            credentials: 'include' 
+            credentials: 'include' // Важно передать куки для сессии
         });
 
         if (response.ok) {
             console.log("Logout successful.");
             
+            // Логика после успешного выхода
             userIsOnline = false;
             currentUser = null;
-            document.getElementById('logInText').innerHTML = '<span>Login</span>';
-            document.getElementById('logOutText').style.display = 'none'; 
+
+            // Перенаправляем пользователя на главную или страницу логина
+            window.location.href = '/Frontend/client/main_page.html'; // Укажите путь к вашей главной странице
         } else {
-            
+            // Обработка ошибок, если сервер вернул неуспешный статус
             const result = await response.json();
             console.error("Logout failed:", result);
-            
+            alert(result.message || 'Failed to log out. Please try again.');
         }
     } catch (error) {
-        
+        // Логируем ошибку, если возникла проблема на клиентской стороне
         console.error('Logout error:', error);
-        
+        alert('Server error. Please try again later.');
     }
 });
 
@@ -172,7 +177,7 @@ async function checkUserOnLoad() {
             userIsOnline = true;
             currentUser = result;
             document.getElementById('loginModal').style.display = 'none'; 
-            document.getElementById('logInText').innerHTML = '<a href="profile.html id="profileStyles">Profile</a>';
+            document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html" id="profileStyles">Profile</a>';
             document.getElementById('logOutText').style.display = 'inline'; 
 
             

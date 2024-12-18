@@ -14,16 +14,7 @@
             <div class="logo-container">
                 <a href="/Frontend/client/main_page.html"><img src="../pictures/logo.png" alt="Logo" width="85"></a>
             </div>
-            <div class="login-container">
-                    <a id="logInText" class="login-link">
-                        <span>Login</span>
-                    </a>
-                    <img src="../pictures/login-avatar.png" alt="Login Icon" width="22" height="22">
-                    <a id="logOutText" class="login-link" style="display:none;"><br>
-                        <span class="qwer123">Logout</span>
-                    </a>
-                </div>
-            </div>
+            
         </header>
 
     <div class="profile-card">
@@ -33,7 +24,9 @@
         
         
 
-        <button class="edit-btn" id="edit-btn">Edit Profile</button>
+        <button class="edit-btn" id="edit-btn">Edit Profile</button><br>
+        <button class="edit-btn" id="logOutText">Log out</button>
+
 
         <form id="edit-form" class="hidden">
             <input type="text" id="edit-name" placeholder="Enter your name" required>
@@ -70,9 +63,10 @@
         </ul>
         <p>&copy;2024 Roots of Flavor - Food History | All Rights Reserved</p>
       </footer>
-
+      
     <script src="scriptProfile.js">
-        
     </script>
+    <script src="/Frontend/client/navbarHeader.js"></script>
+    
 </body>
 </html>
