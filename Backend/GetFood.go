@@ -23,6 +23,7 @@ type Food struct {
 	Country      string `json:"country"`
 }
 
+// test commit
 var db *gorm.DB
 
 func init() {
