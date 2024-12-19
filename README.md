@@ -21,7 +21,7 @@ Follow these steps to run the project on your local machine:
 Clone the project repository to your local machine:
 
 ```bash
-git clone https://github.com/da3goo/FoodHistory-1.1.git
+git clone https://github.com/da3goo/Roots-of-Flavor.git
 ```
 ### 2. Set up the Backend (Go)
 - Clone the repository.
