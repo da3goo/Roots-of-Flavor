@@ -3,7 +3,8 @@ body {
     padding: 0;
     height: 100vh;
     display: grid;
-    background: linear-gradient(135deg, #8bbfff, #4585fc);
+    /* background: linear-gradient(135deg, #8bbfff, #4585fc); */
+    background-color: beige;
     font-family: Arial, sans-serif;
 }
 

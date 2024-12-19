@@ -9,6 +9,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
@@ -26,9 +27,10 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 type User struct {
-	ID       int    `json:"id"`
-	Fullname string `json:"fullname"`
-	Email    string `json:"email"`
+	ID        int       `json:"id"`
+	Fullname  string    `json:"fullname"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 type Food struct {
 	ID           int    `json:"id"`
@@ -85,7 +87,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("Invalid credentials for user: %s", credentials.Email)
-			
+
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid email or password"})
@@ -161,8 +163,9 @@ func checkSessionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User
-	query := "SELECT id, fullname, email FROM users WHERE id = $1"
-	err = db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email)
+	query := "SELECT id, fullname, email, created_at FROM users WHERE id = $1"
+	err = db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt)
+
 	if err != nil {
 		log.Printf("Database error: %v", err)
 		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)

@@ -86,7 +86,7 @@ document.getElementById('foodsLink').addEventListener('click', function(event) {
 
 
 // Login
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
+document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
     const email = document.getElementById('emailInput').value;
@@ -102,29 +102,24 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         });
 
         console.log("Login response status:", response.status);
-        const result = await response.json();
-
         if (response.ok) {
+            const result = await response.json();
             console.log("Login successful for user:", result);
             userIsOnline = true;
             currentUser = result;
-            document.getElementById('loginModal').style.display = 'none'; 
+            document.getElementById('loginModal').style.display = 'none';
             document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html">Profile</a>';
-            
         } else {
-            
+            const result = await response.json();
             console.log("Login failed:", result.error);
-            if (result.error && result.error === "Invalid email or password") {
-                alert('Incorrect email or password. Please try again.');
-            } else {
-                alert(result.error || 'Login failed');
-            }
+            alert(result.error || 'Login failed. Please try again.');
         }
     } catch (error) {
         console.error('Login error:', error);
-        
+        alert('Could not connect to the server. Please try again later.');
     }
 });
+
 
 
 // Логика для кнопки "Logout"
@@ -134,30 +129,25 @@ document.getElementById('logOutText').addEventListener('click', async function (
 
         const response = await fetch('http://localhost:8080/logout', {
             method: 'POST',
-            credentials: 'include' 
+            credentials: 'include'
         });
 
         if (response.ok) {
             console.log("Logout successful.");
-            
-           
             userIsOnline = false;
             currentUser = null;
-
-            
-            window.location.href = '/Frontend/client/main_page.html'; 
+            window.location.href = '/Frontend/client/main_page.html';
         } else {
-            
             const result = await response.json();
             console.error("Logout failed:", result);
             alert(result.message || 'Failed to log out. Please try again.');
         }
     } catch (error) {
-        
         console.error('Logout error:', error);
-        alert('Server error. Please try again later.');
+        alert('Could not connect to the server. Please try again later.');
     }
 });
+
 
 
 async function checkUserOnLoad() {
@@ -171,33 +161,30 @@ async function checkUserOnLoad() {
             const result = await response.json();
             userIsOnline = true;
             currentUser = result;
-            document.getElementById('loginModal').style.display = 'none'; 
+            document.getElementById('loginModal').style.display = 'none';
             document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html" id="profileStyles">Profile</a>';
-            document.getElementById('logOutText').style.display = 'inline'; 
-
-            
+            document.getElementById('logOutText').style.display = 'inline';
         } else {
             userIsOnline = false;
             currentUser = null;
             document.getElementById('logInText').innerHTML = '<span>Login</span>';
-            document.getElementById('logOutText').style.display = 'none'; 
+            document.getElementById('logOutText').style.display = 'none';
         }
     } catch (error) {
         console.error('Error checking session:', error);
-        
-
-        
+        alert('Could not connect to the server. Please try again later.');
     }
 }
+
 
 checkUserOnLoad();
 
 
 
 //Reg
-document.getElementById('registerForm').addEventListener('submit', async function(event) {
+document.getElementById('registerForm').addEventListener('submit', async function (event) {
     event.preventDefault();
-    
+
     const email = document.getElementById('emailRegisterInput').value;
     const password = document.getElementById('passwordRegisterInput').value;
     const fullname = document.getElementById('nameRegiserInput').value;
@@ -206,29 +193,25 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         const response = await fetch('http://localhost:8080/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password, fullname: fullname })
+            body: JSON.stringify({ email, password, fullname })
         });
 
         const result = await response.json();
 
         if (response.ok) {
             console.log("Registration successful:", result);
-            alert(result.message);  // Сообщение об успешной регистрации
+            alert(result.message || 'Registration successful!'); 
             window.location.href = '/Frontend/client/main_page.html';
         } else {
             console.error("Registration failed:", result);
-            if (response.status === 409) {
-                // Если email уже существует, показываем alert с сообщением
-                alert(result.error || "Email already exists!");  // Если есть error в JSON, покажем его
-            } else {
-                alert("Registration failed!");  // Другие ошибки
-            }
+            alert(result.error || "Registration failed!");
         }
     } catch (error) {
         console.error('Registration error:', error);
-        alert('An error occurred during registration.');
+        alert('Could not connect to the server. Please try again later.');
     }
 });
+
 
 
 
