@@ -51,6 +51,19 @@ p {
 .edit-btn:hover {
     background-color: #ff5b77;
 }
+.delete-btn{
+  margin-top: 20px;
+    background-color: #d43c3c;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.delete-btn:hover{
+  background-color: #ff0000;
+}
 
 
 
