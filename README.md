@@ -34,3 +34,42 @@ git clone https://github.com/da3goo/Roots-of-Flavor.git
   go run main.go
 
 
+
+
+  ## Tools and Resources
+
+1. **Go (Golang)**:
+   - Programming language used to build the backend.
+   - [Official Go website](https://golang.org/)
+
+2. **PostgreSQL**:
+   - Relational database used to store food information.
+   - [Official PostgreSQL website](https://www.postgresql.org/)
+
+3. **JavaScript**:
+   - Programming language used to create the frontend interactivity.
+
+4. **HTML/CSS**:
+   - Markup and styling languages for building and designing the user interface.
+
+5. **Postman**:
+   - Tool for testing and documenting the API.
+   - [Official Postman website](https://www.postman.com/)
+
+6. **Supabase**:
+   - Backend-as-a-Service platform providing database, authentication, and file storage services.
+   - [Official Supabase website](https://supabase.com/)
+
+7. **Visual Studio Code**:
+   - Popular code editor supporting Go, JavaScript, HTML, CSS, and many extensions.
+   - [Download Visual Studio Code](https://code.visualstudio.com/)
+
+8. **Git and GitHub**:
+   - Version control system for tracking changes in the project.
+   - [Official Git website](https://git-scm.com/)
+   - [GitHub](https://github.com/) for hosting and collaboration on the project.
+
+
+
+
+
