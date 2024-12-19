@@ -112,7 +112,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         } else {
             const result = await response.json();
             console.log("Login failed:", result.error);
-            // Проверка на наличие ошибки и вывод alert
+            
             if (result.error) {
                 alert(result.error);
             } else {

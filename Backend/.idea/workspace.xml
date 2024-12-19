@@ -6,7 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="8edcd18b-4d81-4ccf-adb0-e89b1fb20d17" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GetFood.go" beforeDir="false" afterPath="$PROJECT_DIR$/GetFood.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GetFood.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/client/navbarHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/client/navbarHeader.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,6 +52,11 @@
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\VS Code Folder\FoodHistoryProject 1.1\Backend\handlers" />
+    </key>
+  </component>
   <component name="RunManager">
     <configuration name="go build awesomeProject" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
       <module name="Backend" />
