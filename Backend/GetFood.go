@@ -27,10 +27,11 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 type User struct {
-	ID        int       `json:"id"`
-	Fullname  string    `json:"fullname"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID                int       `json:"id"`
+	Fullname          string    `json:"fullname"`
+	Email             string    `json:"email"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedFullnameAt time.Time `json:"updatedFullnameAt"`
 }
 type Food struct {
 	ID           int    `json:"id"`
@@ -53,15 +54,14 @@ func init() {
 	err = db.Ping()
 	if err != nil {
 		log.Fatal("Error connecting to the database:", err)
+	} else {
 	}
+	log.Println("Connected to Database")
 	store = sessions.NewCookieStore([]byte("key1"))
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Login request received.")
-
 	if r.Method != http.MethodPost {
-		log.Println("Invalid request method:", r.Method)
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -70,48 +70,33 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
-		log.Printf("Error decoding JSON: %v", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("Attempting to log in user: %s", credentials.Email)
-
 	var user User
-	query := "SELECT id, fullname, email FROM users WHERE email = $1 AND password = $2"
-	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(&user.ID, &user.Fullname, &user.Email)
-
+	query := "SELECT id, fullname, email, updated_fullname_at FROM users WHERE email = $1 AND password = $2"
+	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Printf("Invalid credentials for user: %s", credentials.Email)
-
+			// Отправляем ошибку в формате JSON
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid email or password"})
 			return
-		} else {
-			log.Printf("Database error during login: %v", err)
-			http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
-			return
 		}
-	}
-
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		log.Printf("Error creating session: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
+	session, _ := store.Get(r, "user-session")
 	session.Values["userID"] = user.ID
 	session.Values["fullname"] = user.Fullname
 	session.Values["email"] = user.Email
+	session.Values["updatedFullnameAt"] = user.UpdatedFullnameAt.Format("2006-01-02 15:04:05")
 	session.Save(r, w)
-
-	log.Printf("User %s logged in successfully", user.Fullname)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
@@ -122,7 +107,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		log.Printf("Error retrieving session: %v", err) // Логирование ошибки при получении сессии
+		log.Printf("Error retrieving session: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -134,46 +119,44 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = session.Save(r, w)
 	if err != nil {
-		log.Printf("Error saving session: %v", err) // Логирование ошибки при сохранении сессии
+		log.Printf("Error saving session: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	log.Println("User logged out successfully.")
 
-	// Возвращаем ответ о успешном выходе
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
 }
 
 func checkSessionHandler(w http.ResponseWriter, r *http.Request) {
-
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		log.Printf("Error retrieving session: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	session, _ := store.Get(r, "user-session")
 
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
-		log.Println("User not logged in or session expired")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	var user User
-	query := "SELECT id, fullname, email, created_at FROM users WHERE id = $1"
-	err = db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt)
-
+	query := "SELECT id, fullname, email, created_at, updated_fullname_at FROM users WHERE id = $1"
+	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt)
 	if err != nil {
-		log.Printf("Database error: %v", err)
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
+	response := map[string]interface{}{
+		"id":                user.ID,
+		"fullname":          user.Fullname,
+		"email":             user.Email,
+		"createdAt":         user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		"updatedFullnameAt": user.UpdatedFullnameAt.Format("2006-01-02T15:04:05Z"),
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(response)
 }
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
@@ -252,15 +235,110 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
 }
 
+func updateNameHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Profile update request received.")
+
+	if r.Method != http.MethodPost {
+		log.Println("Invalid request method:", r.Method)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var requestData struct {
+		Fullname string `json:"fullname"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		log.Printf("Error decoding JSON: %v", err)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	userID, ok := session.Values["userID"].(int)
+	if !ok {
+		log.Println("User not logged in")
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	query := `UPDATE users 
+              SET fullname = $1, updated_fullname_at = NOW() 
+              WHERE id = $2 
+              RETURNING updated_fullname_at`
+	var updatedAt time.Time
+	err = db.QueryRow(query, requestData.Fullname, userID).Scan(&updatedAt)
+	if err != nil {
+		log.Printf("Error updating user profile: %v", err)
+		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"message":             "Profile updated successfully",
+		"updated_fullname_at": updatedAt.Format("2006-01-02 15:04:05"),
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Delete profile request received.")
+
+	if r.Method != http.MethodDelete {
+		log.Println("Invalid request method:", r.Method)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	userID, ok := session.Values["userID"].(int)
+	if !ok {
+		log.Println("User not logged in")
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	query := `DELETE FROM users WHERE id = $1`
+	_, err = db.Exec(query, userID)
+	if err != nil {
+		log.Printf("Error deleting user: %v", err)
+		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+		return
+	}
+
+	session.Options.MaxAge = -1
+	err = session.Save(r, w)
+	if err != nil {
+		log.Printf("Error deleting session: %v", err)
+		http.Error(w, "Failed to delete session", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
+}
+
 func main() {
 	http.HandleFunc("/food", getFoodByName)
-
 	http.HandleFunc("/login", loginHandler)
-
 	http.HandleFunc("/logout", logoutHandler)
-
 	http.HandleFunc("/checksession", checkSessionHandler)
 	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/updateName", updateNameHandler)
+	http.HandleFunc("/deleteUser", deleteUserHandler)
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
@@ -306,7 +384,7 @@ func getFoodByName(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(food); err != nil {
-		log.Printf("Error encoding JSON for food: %s", foodName) // Сообщение при ошибке кодирования
+		log.Printf("Error encoding JSON for food: %s", foodName)
 		sendErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Error encoding JSON: %v", err))
 	}
 }

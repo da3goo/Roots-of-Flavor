@@ -112,13 +112,19 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         } else {
             const result = await response.json();
             console.log("Login failed:", result.error);
-            alert(result.error || 'Login failed. Please try again.');
+            // Проверка на наличие ошибки и вывод alert
+            if (result.error) {
+                alert(result.error);
+            } else {
+                alert('Login failed. Please try again.');
+            }
         }
     } catch (error) {
         console.error('Login error:', error);
         alert('Could not connect to the server. Please try again later.');
     }
 });
+
 
 
 

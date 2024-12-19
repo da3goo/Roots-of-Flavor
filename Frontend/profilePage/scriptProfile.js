@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     checkSession();  
 
-    
     const logOutButton = document.getElementById('logOutText');
     if (logOutButton) {
         logOutButton.addEventListener('click', async function () {
@@ -26,6 +25,89 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    document.getElementById('delete-btn').addEventListener('click', async function () {
+        if (confirm('Are you sure you want to delete your profile? This action cannot be undone.')) {
+            try {
+                const response = await fetch('http://localhost:8080/deleteUser', {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+    
+                if (response.ok) {
+                    alert('Your profile has been deleted successfully.');
+                    window.location.href = '/Frontend/client/main_page.html'; 
+                } else {
+                    const result = await response.json();
+                    alert(result.message || 'Failed to delete profile.');
+                }
+            } catch (error) {
+                console.error('Error deleting profile:', error);
+                alert('Unable to delete your profile. Please try again later.');
+            }
+        }
+    });
+    
+    document.getElementById('edit-btn').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModal');
+        modal.style.display = 'block';
+        loadUserData(); 
+    });
+    
+    document.getElementById('close-btn').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModal');
+        modal.style.display = 'none';
+    });
+    document.getElementById('editProfileForm').addEventListener('submit', async function (event) {
+        event.preventDefault(); 
+    
+        const updatedFullname = document.getElementById('fullname').value;
+    
+        
+        try {
+            const sessionResponse = await fetch('http://localhost:8080/checksession', {
+                method: 'GET',
+                credentials: 'include'
+            });
+    
+            if (sessionResponse.ok) {
+                const userData = await sessionResponse.json();
+    
+                
+                if (userData.fullname === updatedFullname) {
+                    alert('This name is already in use. No changes were made.');
+                    window.location.href = 'profile.html'; 
+                    return;
+                }
+            } else {
+                alert('Session expired or not logged in. Please log in.');
+                window.location.href = '/Frontend/client/main_page.html'; 
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking session:', error);
+            alert('Unable to verify session. Please try again later.');
+            return;
+        }
+    
+        
+        const response = await fetch('http://localhost:8080/updateName', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ fullname: updatedFullname })
+        });
+    
+        if (response.ok) {
+            alert('Profile updated successfully');
+            window.location.reload(); 
+        } else {
+            const result = await response.json();
+            alert(result.message || 'Failed to update profile');
+        }
+    });
+
+
+    
 });
 
 
@@ -38,31 +120,57 @@ async function checkSession() {
 
         if (response.ok) {
             const userData = await response.json();
-            console.log("User data:", userData);  // Выводим данные, чтобы понять, что приходит с сервера
+            console.log("User data:", userData);
 
-            // Заполняем данные профиля
+            
             document.getElementById('profile-fullname').textContent = userData.fullname;
             document.getElementById('profile-email').textContent = userData.email;
 
-            // Обрабатываем дату
-            console.log("Created at:", userData.createdAt);  // Смотрим, что приходит в поле createdAt
+            
             const createdAt = new Date(userData.createdAt);
-
-            if (isNaN(createdAt)) {
-                document.getElementById('profile-createdAt').textContent = 'Invalid account creation date';
-            } else {
-                document.getElementById('profile-createdAt').textContent = `Account created on: ${createdAt.toLocaleString()}`;
-            }
+            document.getElementById('profile-createdAt').textContent = isNaN(createdAt)
+                ? 'Invalid account creation date'
+                : `Account created on: ${createdAt.toLocaleString()}`;
         } else {
             alert('Session expired or not logged in. Please log in.');
-            window.location.href = '/Frontend/client/main_page.html'; // Перенаправляем на главную страницу
+            window.location.href = '/Frontend/client/main_page.html';
         }
     } catch (error) {
         console.error('Error checking session:', error);
         alert('Unable to verify session. Please try again later.');
-        window.location.href = '/Frontend/client/main_page.html'; // Перенаправляем на главную страницу
+        window.location.href = '/Frontend/client/main_page.html';
     }
 }
+
+async function loadUserData() {
+    try {
+        const response = await fetch('http://localhost:8080/checksession', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            const userData = await response.json();
+            console.log("User data:", userData);
+
+            
+            document.getElementById('fullname').placeholder = userData.fullname;
+            document.getElementById('fullname').value = userData.fullname;
+
+            
+            const updatedAt = new Date(userData.updatedFullnameAt); 
+            document.getElementById('updatedAt').textContent = isNaN(updatedAt)
+                ? 'Invalid date format'
+                : `Last updated: ${updatedAt.toLocaleString()}`;
+        } else {
+            alert('Session expired or not logged in. Please log in.');
+            window.location.href = '/Frontend/client/main_page.html';
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+    }
+}
+
 
 
 

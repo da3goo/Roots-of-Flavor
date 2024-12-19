@@ -22,23 +22,25 @@
         <h2 id="profile-fullname">Name</h2>
         <h2 id="profile-email"></h2>
         <p id="profile-createdAt"></p>
-        
-      
-
-
-        <p id="profile-info" class="hidden">About you...</p>
-        
-        
-
         <button class="edit-btn" id="edit-btn">Edit Profile</button><br>
         <button class="edit-btn" id="logOutText">Log out</button>
+        <button class="delete-btn" id="delete-btn">Delete profile</button>
 
 
-        <form id="edit-form" class="hidden">
-            <input type="text" id="edit-name" placeholder="Enter your name" required>
-            <textarea id="edit-about" placeholder="Enter info about you" rows="3" required></textarea>
-            <button type="submit" class="edit-btn">Save</button>
-        </form>
+    </div>
+
+    <div id="editProfileModal" class="modal">
+      <div class="modal-content">
+          <span id="close-btn" class="close">&times;</span>
+          <h2>Edit Profile</h2>             
+  
+          <form id="editProfileForm">
+              <label for="fullname">Full Name:</label>
+              <input type="text" id="fullname" name="fullname" required><br><br>
+              <p><span id="updatedAt"></span></p>
+              <button type="submit">Save Changes</button>
+          </form>
+        </div>
     </div>
 
 
