@@ -72,38 +72,67 @@ func init() {
 	}
 
 }
+func addCORSHeaders(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
 
 func login(w http.ResponseWriter, r *http.Request) {
+	addCORSHeaders(w)
+	// Проверяем метод запроса
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
+	// Создаем структуру для хранения данных из JSON
 	var credentials struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
+	fmt.Println("Request body:", r.Body)
+
+	// Декодируем JSON из тела запроса
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		// Логируем ошибку для отладки
+		fmt.Println("Error decoding JSON:", err)
+
+		// Если ошибка в декодировании, возвращаем ошибку с типом JSON
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status":  "fail",
+			"message": "Invalid JSON format",
+		})
 		return
 	}
 
+	// Логируем принятые данные для отладки
+	fmt.Println("Received credentials:", credentials)
+
+	// Пытаемся найти пользователя в базе данных
 	var user User
 	query := "SELECT id, fullname, email, updated_fullname_at FROM users WHERE email = $1 AND password = $2"
 	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-
+			// Неверный email или пароль
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid email or password"})
+			json.NewEncoder(w).Encode(map[string]string{
+				"status":  "fail",
+				"message": "Invalid email or password", // Теперь с status: "fail"
+			})
 			return
 		}
+		// Другие ошибки базы данных
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
+	// Устанавливаем сессию пользователя
 	session, _ := store.Get(r, "user-session")
 	session.Values["userID"] = user.ID
 	session.Values["fullname"] = user.Fullname
@@ -111,8 +140,13 @@ func login(w http.ResponseWriter, r *http.Request) {
 	session.Values["updatedFullnameAt"] = user.UpdatedFullnameAt.Format("2006-01-02 15:04:05")
 	session.Save(r, w)
 
+	// Отправляем успешный ответ с данными пользователя
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "success", // Здесь добавлено поле status
+		"message": "Login successful",
+		"user":    user,
+	})
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
