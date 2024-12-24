@@ -79,60 +79,65 @@ func addCORSHeaders(w http.ResponseWriter) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-	addCORSHeaders(w)
-	// Проверяем метод запроса
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Создаем структуру для хранения данных из JSON
 	var credentials struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email    interface{} `json:"email"`
+		Password interface{} `json:"password"`
 	}
-	fmt.Println("Request body:", r.Body)
 
-	// Декодируем JSON из тела запроса
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
-		// Логируем ошибку для отладки
-		fmt.Println("Error decoding JSON:", err)
 
-		// Если ошибка в декодировании, возвращаем ошибку с типом JSON
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "fail",
 			"message": "Invalid JSON format",
+			"status":  "fail",
 		})
 		return
 	}
 
-	// Логируем принятые данные для отладки
-	fmt.Println("Received credentials:", credentials)
+	if _, ok := credentials.Email.(string); !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Incorrect data type",
+			"status":  "fail",
+		})
+		return
+	}
 
-	// Пытаемся найти пользователя в базе данных
+	if _, ok := credentials.Password.(string); !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Incorrect data type",
+			"status":  "fail",
+		})
+		return
+	}
+
 	var user User
 	query := "SELECT id, fullname, email, updated_fullname_at FROM users WHERE email = $1 AND password = $2"
 	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// Неверный email или пароль
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{
+				"message": "Invalid email or password",
 				"status":  "fail",
-				"message": "Invalid email or password", // Теперь с status: "fail"
 			})
 			return
 		}
-		// Другие ошибки базы данных
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	// Устанавливаем сессию пользователя
 	session, _ := store.Get(r, "user-session")
 	session.Values["userID"] = user.ID
 	session.Values["fullname"] = user.Fullname
@@ -140,15 +145,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 	session.Values["updatedFullnameAt"] = user.UpdatedFullnameAt.Format("2006-01-02 15:04:05")
 	session.Save(r, w)
 
-	// Отправляем успешный ответ с данными пользователя
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":  "success", // Здесь добавлено поле status
-		"message": "Login successful",
-		"user":    user,
-	})
+	json.NewEncoder(w).Encode(user)
 }
 
+//32
 func logout(w http.ResponseWriter, r *http.Request) {
 	log.Println("Logout request received.")
 
