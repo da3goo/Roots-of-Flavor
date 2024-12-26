@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -149,7 +150,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-//32
+// 32
 func logout(w http.ResponseWriter, r *http.Request) {
 	log.Println("Logout request received.")
 
@@ -216,15 +217,57 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	var rawData map[string]interface{}
+	err = json.Unmarshal(body, &rawData)
+	if err != nil {
+		log.Printf("Error decoding JSON: %v", err)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	expectedKeys := map[string]string{
+		"fullname": "string",
+		"email":    "string",
+		"password": "string",
+	}
+
+	for key, expectedType := range expectedKeys {
+		value, exists := rawData[key]
+		if !exists {
+			log.Printf("Missing key: %s", key)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"message": "Incorrect key name"})
+			return
+		}
+
+		switch expectedType {
+		case "string":
+			if _, ok := value.(string); !ok {
+				log.Printf("Invalid type for key: %s, expected: %s", key, expectedType)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(map[string]string{"message": "Invalid type for key: " + key})
+				return
+			}
+		}
+	}
+
 	var credentials struct {
 		Fullname string `json:"fullname"`
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
-
-	err := json.NewDecoder(r.Body).Decode(&credentials)
+	err = json.Unmarshal(body, &credentials)
 	if err != nil {
-		log.Printf("Error decoding JSON: %v", err)
+		log.Printf("Error decoding JSON into struct: %v", err)
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
@@ -240,7 +283,6 @@ func register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if existingUserID != 0 {
-
 		log.Printf("User already exists with email: %s", credentials.Email)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict) // 409 Conflict
