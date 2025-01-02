@@ -122,15 +122,22 @@ async function checkSession() {
             const userData = await response.json();
             console.log("User data:", userData);
 
-            
+            // Заполнение профиля пользователя
             document.getElementById('profile-fullname').textContent = userData.fullname;
             document.getElementById('profile-email').textContent = userData.email;
 
-            
             const createdAt = new Date(userData.createdAt);
             document.getElementById('profile-createdAt').textContent = isNaN(createdAt)
                 ? 'Invalid account creation date'
                 : `Account created on: ${createdAt.toLocaleString()}`;
+
+            // Проверка статуса пользователя
+            if (userData.userStatus === 'admin') {
+                const adminBtn = document.getElementById('admin-btn');
+                if (adminBtn) {
+                    adminBtn.style.display = 'block'; // Показываем кнопку
+                }
+            }
         } else {
             alert('Session expired or not logged in. Please log in.');
             window.location.href = '/Frontend/client/main_page.html';
@@ -141,6 +148,7 @@ async function checkSession() {
         window.location.href = '/Frontend/client/main_page.html';
     }
 }
+
 
 async function loadUserData() {
     try {

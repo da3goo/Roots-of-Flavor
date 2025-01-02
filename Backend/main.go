@@ -45,6 +45,7 @@ type User struct {
 	Email             string    `json:"email"`
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedFullnameAt time.Time `json:"updatedFullnameAt"`
+	Userstatus        string    `json:"userStatus"`
 }
 type Food struct {
 	ID           int    `json:"id"`
@@ -86,13 +87,12 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var credentials struct {
-		Email    interface{} `json:"email"`
-		Password interface{} `json:"password"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -102,29 +102,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := credentials.Email.(string); !ok {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Incorrect data type",
-			"status":  "fail",
-		})
-		return
-	}
-
-	if _, ok := credentials.Password.(string); !ok {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Incorrect data type",
-			"status":  "fail",
-		})
-		return
-	}
-
 	var user User
-	query := "SELECT id, fullname, email, updated_fullname_at FROM users WHERE email = $1 AND password = $2"
-	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt)
+	query := `
+		SELECT id, fullname, email, updated_fullname_at, userstatus 
+		FROM users 
+		WHERE email = $1 AND password = $2`
+	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(
+		&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt, &user.Userstatus,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.Header().Set("Content-Type", "application/json")
@@ -144,6 +129,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	session.Values["fullname"] = user.Fullname
 	session.Values["email"] = user.Email
 	session.Values["updatedFullnameAt"] = user.UpdatedFullnameAt.Format("2006-01-02 15:04:05")
+	session.Values["userstatus"] = user.Userstatus
 	session.Save(r, w)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -189,19 +175,22 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User
-	query := "SELECT id, fullname, email, created_at, updated_fullname_at FROM users WHERE id = $1"
-	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt)
+	// Обновленный запрос, добавляем поле user_status
+	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE id = $1"
+	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
+	// Формирование ответа, включая userStatus
 	response := map[string]interface{}{
 		"id":                user.ID,
 		"fullname":          user.Fullname,
 		"email":             user.Email,
 		"createdAt":         user.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		"updatedFullnameAt": user.UpdatedFullnameAt.Format("2006-01-02T15:04:05Z"),
+		"userStatus":        user.Userstatus, // Добавляем userStatus в ответ
 	}
 
 	w.Header().Set("Content-Type", "application/json")
