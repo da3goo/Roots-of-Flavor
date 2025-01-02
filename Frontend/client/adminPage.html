@@ -1,11 +1,215 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Admin Page</title>
+    <link rel="stylesheet" href="navbarHeader.css">
+    <link rel="icon" type="image/png" href="/Frontend/favicon/favicon-96x96.png" sizes="96x96" />
+    <link rel="stylesheet" href="darkModeFoods.css">
+    <link rel="stylesheet" href="adminPage.css">
+
+
+
+    
 </head>
 <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo-container">
+                <a href="main_page.html"><img src="../pictures/logo.png" alt="Logo" width="85"></a>
+            </div>
+            <div class="login-container">
+                    <a id="logInText" class="login-link">
+                        <span>Login</span>
+                    </a>
+                    <img src="../pictures/login-avatar.png" alt="Login Icon" width="22" height="22">
+                    <a id="logOutText" class="login-link" style="display: none"><br>
+                        <span class="qwer123"></span>
+                      </a>
+                </div>
+            </div>
+        </header>
+        
+
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <button class="darkModeBtn" id="darkModeBtn">🌙 Dark Mode</button>
+        <a href="aboutUs.html">About Us</a>
+        <div class="menu-item">
+            <a href="#" class="menu-link" id="foodsLink">
+                Foods
+                <span class="icon">
+                    <svg class="chevron-down icon-down" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/>
+                    </svg>
+                    <svg class="chevron-up icon-up" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path d="M233.4 105.4c12.5-12.5 32.8-12.5 45.3 0l192 192c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L256 173.3 86.6 342.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l192-192z"/>
+                    </svg>
+                </span>
+            </a>
+            <div class="submenu" id="foodsSubmenu">
+                <a href="dishes.html">Dishes</a>
+                <a href="foodProducts.html">Food Products</a>
+                <a href="beverages.html">Beverages</a>
+            </div>
+        </div>
+        <a href="dish_map.html" id="dishMapLink">Map</a>
+        <a href="quiz.html">Quiz</a>
+    </div>
+
+    <div class="filters">
+        <select id="sortSelect">
+            <option value="nameAsc">Sort from A to Z</option>
+            <option value="nameDesc">Sort from Z to A</option>
+            <option value="createdAt">Sort by creation date</option>
+            <option value="id">Sort by creation ID</option>
+        </select>
+        <input type="text" id="emailFilter" placeholder="Email filtering">
+        <button onclick="applyFilters()">Apply</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fullname</th>
+                    <th>Email</th>
+                    <th>UserStatus</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- Modal Login -->
+    <div id="loginModal" class="modal loginModal">
+        <div class="modal-content loginModal-content">
+            <span class="closeBtnLoginModal">&times;</span>
+            <h2 class="modal-title loginText2">Login</h2>
+            <form id="loginForm" class="modal-form">
+                <label for="emailInput" class="form-label">Email:</label>
+                <input type="email" id="emailInput" class="form-input" required>
+                <br>
+                <label for="passwordInput" class="form-label">Password:</label>
+                <input type="password" id="passwordInput" class="form-input" required>
+                <br>
+                <p class="modal-footer">First time here? <a id="registerText" href="#" class="modal-link">Register</a></p>
+                <br>
+                <button type="submit" class="modal-button">Login</button>
+            </form>
+        </div>
+    </div>
     
+    <!-- Modal Register -->
+    <div id="registerModal" class="modal registerModal">
+        <div class="modal-content registerModal-content">
+            <span class="closeBtnRegisterModal">&times;</span>
+            <h2 class="modal-title">Register</h2>
+            <form id="registerForm" class="modal-form">
+                <label for="nameInput" class="form-label">Fullname</label>
+                <input type="text" id="nameRegiserInput" class="form-input" >
+
+                <label for="emailRegisterInput" class="form-label">Email:</label>
+                <input type="email" id="emailRegisterInput" class="form-input" required>
+
+                <label for="passwordRegisterInput" class="form-label">Password:</label>
+                <input type="password" id="passwordRegisterInput" class="form-input" required>
+
+                <button type="submit" class="modal-button">Register</button>
+            </form>
+        </div>
+    </div>
+    <script src="navbarHeader.js"></script>
+    
+    
+    <script>
+        let users = [];     
+
+async function fetchUsers(sortBy = '', emailFilter = '') {
+    const url = new URL('http://localhost:8080/getUsers');
+    const params = new URLSearchParams();
+
+    if (sortBy) {
+        params.append('sort', sortBy);
+    }
+    if (emailFilter) {
+        params.append('email', emailFilter);
+    }
+
+    url.search = params.toString();
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке данных');
+        }
+
+        users = await response.json();
+        
+        renderTable(users); 
+    } catch (error) {
+        console.error('Ошибка:', error);
+    }
+}
+
+function renderTable(users) {
+    const tableBody = document.getElementById('userTableBody');
+    tableBody.innerHTML = ''; 
+
+    users.forEach(user => {
+        console.log(user.userstatus); 
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.fullname}</td>
+            <td>${user.email}</td>
+            <td>${user.userstatus}</td>
+            <td>${new Date(user.createdAt).toLocaleString()}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+
+function applyFilters() {
+    const sortValue = document.getElementById('sortSelect').value;
+    const emailFilter = document.getElementById('emailFilter').value.toLowerCase();
+
+    fetchUsers(sortValue, emailFilter);
+}
+
+window.onload = fetchUsers;
+
+
+
+        const darkModeToggle = document.getElementById('darkModeBtn');
+        const body = document.body;
+        
+        if (localStorage.getItem('dark-mode') === 'enabled') {
+            body.classList.add('dark-mode');
+        }
+
+        
+        darkModeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+
+        
+        if (body.classList.contains('dark-mode')) {
+            localStorage.setItem('dark-mode', 'enabled');
+        } else {
+        localStorage.setItem('dark-mode', 'disabled');
+        }
+    });
+    </script>
+
+
 </body>
 </html>

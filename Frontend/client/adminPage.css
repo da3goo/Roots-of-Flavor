@@ -1,0 +1,93 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: beige;
+}
+.filters {
+    margin: 10px 0;
+    padding: 10px;
+    
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#sortSelect, #emailFilter {
+    padding: 8px 12px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+thead {
+    background-color: #f8f8f8;
+    color: #333;
+}
+
+th {
+    font-weight: bold;
+    background-color: #007bff;
+    color: white;
+}
+
+tbody tr:hover {
+    background-color: #f1f1f1;
+}
+.table-container {
+    max-height: 400px; 
+    overflow-y: scroll; 
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+tbody {
+    max-height: 400px;
+    overflow-y: auto;
+    display: table-row-group; 
+}
+
+tfoot {
+    background-color: #f8f8f8;
+}
+
+#userTableBody.empty {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 20px 0;
+}
+.dark-mode tbody tr:hover{
+    background-color: #272626;
+
+}

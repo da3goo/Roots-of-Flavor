@@ -26,6 +26,7 @@ func main() {
 	http.HandleFunc("/register", register)
 	http.HandleFunc("/updateName", updateName)
 	http.HandleFunc("/deleteUser", deleteUser)
+	http.HandleFunc("/getUsers", getUsers)
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
@@ -45,7 +46,7 @@ type User struct {
 	Email             string    `json:"email"`
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedFullnameAt time.Time `json:"updatedFullnameAt"`
-	Userstatus        string    `json:"userStatus"`
+	Userstatus        string    `json:"userstatus"`
 }
 type Food struct {
 	ID           int    `json:"id"`
@@ -453,4 +454,68 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 
 	errorResponse := map[string]string{"error": message}
 	json.NewEncoder(w).Encode(errorResponse)
+}
+func getUsers(w http.ResponseWriter, r *http.Request) {
+	// Параметры фильтрации и сортировки
+	sortBy := r.URL.Query().Get("sort")       // Пример: "nameAsc", "nameDesc"
+	emailFilter := r.URL.Query().Get("email") // Фильтрация по email
+
+	// Логирование параметров запроса
+	log.Printf("Received request to get users with filters - Email filter: %s, Sort by: %s", emailFilter, sortBy)
+
+	// Формируем SQL запрос
+	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE email LIKE $1"
+	var args []interface{}
+	args = append(args, "%"+emailFilter+"%")
+
+	// Добавляем сортировку
+	switch sortBy {
+	case "nameAsc":
+		query += " ORDER BY fullname ASC"
+	case "nameDesc":
+		query += " ORDER BY fullname DESC"
+	case "createdAt":
+		query += " ORDER BY created_at"
+	case "id":
+		query += " ORDER BY id"
+	default:
+		query += " ORDER BY created_at DESC" // По умолчанию сортировка по дате создания
+	}
+
+	// Логирование итогового запроса
+	log.Printf("Executing query: %s with args: %v", query, args)
+
+	// Выполнение запроса
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Ошибка выполнения запроса: %v", err), http.StatusInternalServerError)
+		log.Printf("Error executing query: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var user User
+		if err := rows.Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus); err != nil {
+			http.Error(w, fmt.Sprintf("Ошибка при чтении данных: %v", err), http.StatusInternalServerError)
+			log.Printf("Error reading row data: %v", err)
+			return
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		http.Error(w, fmt.Sprintf("Ошибка при обработке результатов: %v", err), http.StatusInternalServerError)
+		log.Printf("Error processing rows: %v", err)
+		return
+	}
+
+	// Логируем количество полученных пользователей
+	log.Printf("Found %d users", len(users))
+
+	// Отправляем данные клиенту
+	w.Header().Set("Content-Type", "application/json")
+	log.Printf("Sending response with %d users", len(users)) // Логирование перед отправкой данных
+	json.NewEncoder(w).Encode(users)
 }
