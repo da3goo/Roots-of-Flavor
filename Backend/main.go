@@ -171,27 +171,31 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
+		log.Println("The session is invalid or the userID is missing")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
+	log.Printf("The user ID was found in the session: %d", userID)
+
 	var user User
-	// Обновленный запрос, добавляем поле user_status
 	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE id = $1"
 	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus)
 	if err != nil {
+		log.Printf("Error when requesting a user from the database: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	// Формирование ответа, включая userStatus
+	log.Printf("User is found %v", user)
+
 	response := map[string]interface{}{
 		"id":                user.ID,
 		"fullname":          user.Fullname,
 		"email":             user.Email,
 		"createdAt":         user.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		"updatedFullnameAt": user.UpdatedFullnameAt.Format("2006-01-02T15:04:05Z"),
-		"userStatus":        user.Userstatus, // Добавляем userStatus в ответ
+		"userStatus":        user.Userstatus,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -456,11 +460,9 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 	json.NewEncoder(w).Encode(errorResponse)
 }
 func getUsers(w http.ResponseWriter, r *http.Request) {
-	// Параметры фильтрации и сортировки
-	sortBy := r.URL.Query().Get("sort")       // Пример: "nameAsc", "nameDesc"
-	emailFilter := r.URL.Query().Get("email") // Фильтрация по email
+	sortBy := r.URL.Query().Get("sort")
+	emailFilter := r.URL.Query().Get("email")
 
-	// Логирование параметров запроса
 	log.Printf("Received request to get users with filters - Email filter: %s, Sort by: %s", emailFilter, sortBy)
 
 	// Формируем SQL запрос
@@ -479,16 +481,12 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	case "id":
 		query += " ORDER BY id"
 	default:
-		query += " ORDER BY created_at DESC" // По умолчанию сортировка по дате создания
+		query += " ORDER BY created_at DESC"
 	}
 
-	// Логирование итогового запроса
-	log.Printf("Executing query: %s with args: %v", query, args)
-
-	// Выполнение запроса
 	rows, err := db.Query(query, args...)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Ошибка выполнения запроса: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Request execution error: %v", err), http.StatusInternalServerError)
 		log.Printf("Error executing query: %v", err)
 		return
 	}
@@ -498,24 +496,22 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var user User
 		if err := rows.Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus); err != nil {
-			http.Error(w, fmt.Sprintf("Ошибка при чтении данных: %v", err), http.StatusInternalServerError)
-			log.Printf("Error reading row data: %v", err)
+			http.Error(w, fmt.Sprintf("Error when reading data: %v", err), http.StatusInternalServerError)
+			log.Printf("Error when reading line data: %v", err)
 			return
 		}
 		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
-		http.Error(w, fmt.Sprintf("Ошибка при обработке результатов: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error in processing the results: %v", err), http.StatusInternalServerError)
 		log.Printf("Error processing rows: %v", err)
 		return
 	}
 
-	// Логируем количество полученных пользователей
 	log.Printf("Found %d users", len(users))
 
-	// Отправляем данные клиенту
 	w.Header().Set("Content-Type", "application/json")
-	log.Printf("Sending response with %d users", len(users)) // Логирование перед отправкой данных
+	log.Printf("Sending response with %d users", len(users))
 	json.NewEncoder(w).Encode(users)
 }

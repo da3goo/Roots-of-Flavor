@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     checkSession();  
+    document.getElementById("admin-btn").addEventListener("click", function () {
+        window.location.href = "/Frontend/client/adminPage.html";
+    });
+    
 
     const logOutButton = document.getElementById('logOutText');
     if (logOutButton) {
@@ -122,7 +126,7 @@ async function checkSession() {
             const userData = await response.json();
             console.log("User data:", userData);
 
-            // Заполнение профиля пользователя
+            
             document.getElementById('profile-fullname').textContent = userData.fullname;
             document.getElementById('profile-email').textContent = userData.email;
 
@@ -131,11 +135,11 @@ async function checkSession() {
                 ? 'Invalid account creation date'
                 : `Account created on: ${createdAt.toLocaleString()}`;
 
-            // Проверка статуса пользователя
+            
             if (userData.userStatus === 'admin') {
                 const adminBtn = document.getElementById('admin-btn');
                 if (adminBtn) {
-                    adminBtn.style.display = 'block'; // Показываем кнопку
+                    adminBtn.style.display = 'block'; 
                 }
             }
         } else {

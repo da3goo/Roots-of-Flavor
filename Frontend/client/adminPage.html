@@ -20,16 +20,7 @@
             <div class="logo-container">
                 <a href="main_page.html"><img src="../pictures/logo.png" alt="Logo" width="85"></a>
             </div>
-            <div class="login-container">
-                    <a id="logInText" class="login-link">
-                        <span>Login</span>
-                    </a>
-                    <img src="../pictures/login-avatar.png" alt="Login Icon" width="22" height="22">
-                    <a id="logOutText" class="login-link" style="display: none"><br>
-                        <span class="qwer123"></span>
-                      </a>
-                </div>
-            </div>
+            
         </header>
         
 
@@ -129,85 +120,9 @@
     <script src="navbarHeader.js"></script>
     
     
-    <script>
-        let users = [];     
-
-async function fetchUsers(sortBy = '', emailFilter = '') {
-    const url = new URL('http://localhost:8080/getUsers');
-    const params = new URLSearchParams();
-
-    if (sortBy) {
-        params.append('sort', sortBy);
-    }
-    if (emailFilter) {
-        params.append('email', emailFilter);
-    }
-
-    url.search = params.toString();
-
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Ошибка при загрузке данных');
-        }
-
-        users = await response.json();
+    <script src="adminPageJS.js">
         
-        renderTable(users); 
-    } catch (error) {
-        console.error('Ошибка:', error);
-    }
-}
 
-function renderTable(users) {
-    const tableBody = document.getElementById('userTableBody');
-    tableBody.innerHTML = ''; 
-
-    users.forEach(user => {
-        console.log(user.userstatus); 
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${user.id}</td>
-            <td>${user.fullname}</td>
-            <td>${user.email}</td>
-            <td>${user.userstatus}</td>
-            <td>${new Date(user.createdAt).toLocaleString()}</td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
-
-
-function applyFilters() {
-    const sortValue = document.getElementById('sortSelect').value;
-    const emailFilter = document.getElementById('emailFilter').value.toLowerCase();
-
-    fetchUsers(sortValue, emailFilter);
-}
-
-window.onload = fetchUsers;
-
-
-
-        const darkModeToggle = document.getElementById('darkModeBtn');
-        const body = document.body;
-        
-        if (localStorage.getItem('dark-mode') === 'enabled') {
-            body.classList.add('dark-mode');
-        }
-
-        
-        darkModeToggle.addEventListener('click', () => {
-        body.classList.toggle('dark-mode');
-
-        
-        if (body.classList.contains('dark-mode')) {
-            localStorage.setItem('dark-mode', 'enabled');
-        } else {
-        localStorage.setItem('dark-mode', 'disabled');
-        }
-    });
     </script>
 
 
