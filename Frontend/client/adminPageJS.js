@@ -20,7 +20,11 @@ async function fetchUsers(sortBy = '', emailFilter = '', page = 1) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error('Error during loading data');
+            if (response.status === 404) {
+                alert('No users found matching the filters');
+            } else {
+                throw new Error('Error during loading data');
+            }
         }
 
         const data = await response.json();

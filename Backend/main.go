@@ -439,24 +439,28 @@ func updateName(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteUser(w http.ResponseWriter, r *http.Request) {
-	log.Println("Delete profile request received.")
+	logrus.Info("Delete profile request received.")
 
 	if r.Method != http.MethodDelete {
-		log.Println("Invalid request method:", r.Method)
+		logrus.WithFields(logrus.Fields{
+			"method": r.Method,
+		}).Warn("Invalid request method")
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		log.Printf("Error retrieving session: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error retrieving session")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	userID, ok := session.Values["userID"].(int)
 	if !ok {
-		log.Println("User not logged in")
+		logrus.Warn("User not logged in")
 		http.Error(w, "User not logged in", http.StatusUnauthorized)
 		return
 	}
@@ -464,7 +468,10 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	query := `DELETE FROM users WHERE id = $1`
 	_, err = db.Exec(query, userID)
 	if err != nil {
-		log.Printf("Error deleting user: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+			"error":  err.Error(),
+		}).Error("Error deleting user")
 		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}
@@ -472,12 +479,17 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	session.Options.MaxAge = -1
 	err = session.Save(r, w)
 	if err != nil {
-		log.Printf("Error deleting session: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error deleting session")
 		http.Error(w, "Failed to delete session", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	logrus.WithFields(logrus.Fields{
+		"userID": userID,
+	}).Info("User deleted successfully")
 	json.NewEncoder(w).Encode(map[string]string{"message": "User deleted successfully"})
 }
 
@@ -595,6 +607,12 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Error processing rows")
+		return
+	}
+
+	if len(users) == 0 {
+		http.Error(w, "No users found matching the filters", http.StatusNotFound)
+		logrus.Info("No users found matching the filters")
 		return
 	}
 
