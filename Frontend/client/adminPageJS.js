@@ -20,7 +20,7 @@ async function fetchUsers(sortBy = '', emailFilter = '', page = 1) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error('Ошибка при загрузке данных');
+            throw new Error('Error during loading data');
         }
 
         const data = await response.json();
@@ -37,7 +37,7 @@ async function fetchUsers(sortBy = '', emailFilter = '', page = 1) {
         }
 
     } catch (error) {
-        console.error('Ошибка:', error);
+        console.error('Error:', error);
     }
 }
 
@@ -87,14 +87,14 @@ function applyFilters() {
     const sortValue = document.getElementById('sortSelect').value;
     const emailFilter = document.getElementById('emailFilter').value.toLowerCase();
 
-    fetchUsers(sortValue, emailFilter, 1);  // Always start from page 1 when filters are applied
+    fetchUsers(sortValue, emailFilter, 1);  
 }
 
 async function checkSession() {
     try {
         const response = await fetch('http://localhost:8080/checksession', {
             method: "GET",
-            credentials: "include", // Обязательно включаем cookie
+            credentials: "include", 
         });
 
         console.log("Response status:", response.status);

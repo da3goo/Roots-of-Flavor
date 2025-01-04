@@ -7,9 +7,11 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -61,19 +63,31 @@ type Food struct {
 
 // Backend functions
 func init() {
+
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+
+	logrus.SetOutput(os.Stdout)
+
 	var err error
 	connStr := "postgres://postgres.omqkkeruydkttwwkdnib:50TADocqYFe4CFTx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Error connecting to the database:", err)
-	} else {
-		log.Println("Connected to Database")
+		logrus.WithFields(logrus.Fields{
+			"error":   err.Error(),
+			"connStr": connStr,
+		}).Fatal("Failed to open database connection")
 	}
 
+	err = db.Ping()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Fatal("Error connecting to the database")
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"status": "success",
+		}).Info("Connected to Database")
+	}
 }
 func addCORSHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -82,7 +96,16 @@ func addCORSHeaders(w http.ResponseWriter) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
+	logrus.WithFields(logrus.Fields{
+		"method":   r.Method,
+		"endpoint": "/login",
+	}).Info("Request started")
+
 	if r.Method != http.MethodPost {
+		logrus.WithFields(logrus.Fields{
+			"method": r.Method,
+			"status": "fail",
+		}).Warn("Invalid request method")
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -94,6 +117,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&credentials)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":  err.Error(),
+			"status": "fail",
+		}).Error("Failed to decode JSON")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{
@@ -113,6 +140,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			logrus.WithFields(logrus.Fields{
+				"email":  credentials.Email,
+				"status": "fail",
+			}).Warn("Invalid email or password")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(map[string]string{
@@ -121,9 +152,19 @@ func login(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
+		logrus.WithFields(logrus.Fields{
+			"error":  err.Error(),
+			"status": "fail",
+		}).Error("Database error during login")
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"userID": user.ID,
+		"email":  user.Email,
+		"status": "success",
+	}).Info("User logged in successfully")
 
 	session, _ := store.Get(r, "user-session")
 	session.Values["userID"] = user.ID
@@ -137,30 +178,36 @@ func login(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// 32
 func logout(w http.ResponseWriter, r *http.Request) {
-	log.Println("Logout request received.")
+	logrus.WithFields(logrus.Fields{
+		"method":   r.Method,
+		"endpoint": "/logout",
+	}).Info("Logout request received")
 
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		log.Printf("Error retrieving session: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error retrieving session")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	logrus.Info("Session values cleared.")
 	session.Values["userID"] = nil
 	session.Values["fullname"] = nil
 	session.Values["email"] = nil
-	log.Println("Session values cleared.")
 
 	err = session.Save(r, w)
 	if err != nil {
-		log.Printf("Error saving session: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error saving session")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	log.Println("User logged out successfully.")
+	logrus.Info("User logged out successfully")
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Logged out successfully"})
@@ -169,32 +216,44 @@ func logout(w http.ResponseWriter, r *http.Request) {
 func checkSession(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "user-session")
 
-	// Логируем всю сессию
-	log.Printf("Session contents: %v", session.Values)
+	logrus.WithFields(logrus.Fields{
+		"session": session.Values,
+	}).Info("Session contents")
 
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
-		log.Println("The session is invalid or the userID is missing")
+		logrus.WithFields(logrus.Fields{
+			"session": session.Values,
+		}).Warn("The session is invalid or the userID is missing")
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	log.Printf("The user ID was found in the session: %d", userID)
+	logrus.WithFields(logrus.Fields{
+		"userID": userID,
+	}).Info("The user ID was found in the session")
 
 	var user User
 	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE id = $1"
 	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus)
 	if err != nil {
 		// Логируем ошибку при запросе пользователя
-		log.Printf("Error when requesting a user from the database: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error when requesting a user from the database")
 		if err == sql.ErrNoRows {
-			log.Println("No rows found for the user ID")
+			logrus.WithFields(logrus.Fields{
+				"userID": userID,
+			}).Warn("No rows found for the user ID")
 		}
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("User is found %v", user)
+	logrus.WithFields(logrus.Fields{
+		"userID":   user.ID,
+		"fullname": user.Fullname,
+	}).Info("User is found")
 
 	response := map[string]interface{}{
 		"id":                user.ID,
@@ -472,7 +531,12 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	page := r.URL.Query().Get("page")
 	pageSize := r.URL.Query().Get("pageSize")
 
-	log.Printf("Received request to get users with filters - Email filter: %s, Sort by: %s", emailFilter, sortBy)
+	logrus.WithFields(logrus.Fields{
+		"emailFilter": emailFilter,
+		"sortBy":      sortBy,
+		"page":        page,
+		"pageSize":    pageSize,
+	}).Info("Received request to get users with filters")
 
 	pageInt := 1
 	pageSizeInt := 9
@@ -505,7 +569,10 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Request execution error: %v", err), http.StatusInternalServerError)
-		log.Printf("Error executing query: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+			"query": query,
+		}).Error("Error executing query")
 		return
 	}
 	defer rows.Close()
@@ -515,7 +582,9 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		var user User
 		if err := rows.Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus); err != nil {
 			http.Error(w, fmt.Sprintf("Error when reading data: %v", err), http.StatusInternalServerError)
-			log.Printf("Error when reading line data: %v", err)
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Error when reading line data")
 			return
 		}
 		users = append(users, user)
@@ -523,7 +592,9 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 
 	if err := rows.Err(); err != nil {
 		http.Error(w, fmt.Sprintf("Error in processing the results: %v", err), http.StatusInternalServerError)
-		log.Printf("Error processing rows: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error processing rows")
 		return
 	}
 
@@ -531,7 +602,9 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email LIKE $1", "%"+emailFilter+"%").Scan(&totalCount)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Error getting total count: %v", err), http.StatusInternalServerError)
-		log.Printf("Error getting total count: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error getting total count")
 		return
 	}
 
@@ -545,6 +618,9 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	log.Printf("Sending response with %d users", len(users))
+	logrus.WithFields(logrus.Fields{
+		"userCount": len(users),
+	}).Info("Sending response with user data")
+
 	json.NewEncoder(w).Encode(response)
 }
