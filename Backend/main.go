@@ -169,6 +169,9 @@ func logout(w http.ResponseWriter, r *http.Request) {
 func checkSession(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "user-session")
 
+	// Логируем всю сессию
+	log.Printf("Session contents: %v", session.Values)
+
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
 		log.Println("The session is invalid or the userID is missing")
@@ -182,7 +185,11 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE id = $1"
 	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus)
 	if err != nil {
+		// Логируем ошибку при запросе пользователя
 		log.Printf("Error when requesting a user from the database: %v", err)
+		if err == sql.ErrNoRows {
+			log.Println("No rows found for the user ID")
+		}
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
@@ -462,15 +469,24 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string) {
 func getUsers(w http.ResponseWriter, r *http.Request) {
 	sortBy := r.URL.Query().Get("sort")
 	emailFilter := r.URL.Query().Get("email")
+	page := r.URL.Query().Get("page")
+	pageSize := r.URL.Query().Get("pageSize")
 
 	log.Printf("Received request to get users with filters - Email filter: %s, Sort by: %s", emailFilter, sortBy)
 
-	// Формируем SQL запрос
+	pageInt := 1
+	pageSizeInt := 9
+	if page != "" {
+		fmt.Sscanf(page, "%d", &pageInt)
+	}
+	if pageSize != "" {
+		fmt.Sscanf(pageSize, "%d", &pageSizeInt)
+	}
+
 	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE email LIKE $1"
 	var args []interface{}
 	args = append(args, "%"+emailFilter+"%")
 
-	// Добавляем сортировку
 	switch sortBy {
 	case "nameAsc":
 		query += " ORDER BY fullname ASC"
@@ -483,6 +499,8 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 	default:
 		query += " ORDER BY created_at DESC"
 	}
+
+	query += fmt.Sprintf(" LIMIT %d OFFSET %d", pageSizeInt, (pageInt-1)*pageSizeInt)
 
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -509,9 +527,24 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Found %d users", len(users))
+	var totalCount int
+	err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email LIKE $1", "%"+emailFilter+"%").Scan(&totalCount)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error getting total count: %v", err), http.StatusInternalServerError)
+		log.Printf("Error getting total count: %v", err)
+		return
+	}
+
+	totalPages := (totalCount + pageSizeInt - 1) / pageSizeInt
+
+	response := map[string]interface{}{
+		"users":       users,
+		"totalCount":  totalCount,
+		"totalPages":  totalPages,
+		"currentPage": pageInt,
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	log.Printf("Sending response with %d users", len(users))
-	json.NewEncoder(w).Encode(users)
+	json.NewEncoder(w).Encode(response)
 }

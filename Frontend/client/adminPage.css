@@ -91,3 +91,28 @@ tfoot {
     background-color: #272626;
 
 }
+
+
+#paginationContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+#paginationContainer button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #00ff26;
+}
+
+#paginationContainer button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+#paginationContainer button:disabled {
+    background-color: #c80202;
+    cursor: not-allowed;
+}

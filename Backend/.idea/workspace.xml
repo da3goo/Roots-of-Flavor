@@ -8,7 +8,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Frontend/client/adminPage.html" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/client/adminPage.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Frontend/profilePage/scriptProfile.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/profilePage/scriptProfile.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/client/adminPageJS.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/client/adminPageJS.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
