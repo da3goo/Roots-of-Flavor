@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/sessions v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/sirupsen/logrus v1.9.3
+	golang.org/x/time v0.9.0
 
 )
 

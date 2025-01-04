@@ -89,6 +89,14 @@ document.getElementById('foodsLink').addEventListener('click', function(event) {
 document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
+    
+    const blockedUntil = localStorage.getItem('blockedUntil');
+    if (blockedUntil && new Date().getTime() < blockedUntil) {
+        const timeLeft = Math.ceil((blockedUntil - new Date().getTime()) / 1000);
+        alert(`You have to wait ${timeLeft} seconds before trying again.👿👿👿`);
+        return;
+    }
+
     const email = document.getElementById('emailInput').value;
     const password = document.getElementById('passwordInput').value;
 
@@ -102,6 +110,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         });
 
         console.log("Login response status:", response.status);
+
         if (response.ok) {
             const result = await response.json();
             console.log("Login successful for user:", result);
@@ -109,10 +118,25 @@ document.getElementById('loginForm').addEventListener('submit', async function (
             currentUser = result;
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html">Profile</a>';
+        } else if (response.status === 429) {
+            
+            const resetTime = response.headers.get('X-RateLimit-Reset');
+            const resetDate = new Date(parseInt(resetTime) * 1000);
+            const timeToWait = Math.max(0, resetDate - new Date());
+            const secondsToWait = Math.ceil(timeToWait / 1000);
+
+            const blockedUntil = new Date().getTime() + 10000; //10 seconds
+            localStorage.setItem('blockedUntil', blockedUntil);
+
+            alert(`Rate limit exceeded. Please try again in ${secondsToWait} seconds👿👿👿.`);
+            setTimeout(() => {
+                alert("I said to try again after 10 seconds!!!👿👿👿");
+            }, 10000);
+
         } else {
             const result = await response.json();
             console.log("Login failed:", result.error);
-            
+
             if (result.error) {
                 alert(result.error);
             } else {
@@ -124,6 +148,12 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         alert('Could not connect to the server. Please try again later.');
     }
 });
+
+
+
+
+
+
 
 
 

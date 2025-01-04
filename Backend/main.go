@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/time/rate"
 	"io"
 	"log"
 	"net/http"
@@ -16,8 +17,9 @@ import (
 )
 
 var (
-	db    *sql.DB
-	store = sessions.NewCookieStore([]byte("key1"))
+	db      *sql.DB
+	store   = sessions.NewCookieStore([]byte("key1"))
+	limiter = rate.NewLimiter(1, 3)
 )
 
 func main() {
@@ -96,6 +98,18 @@ func addCORSHeaders(w http.ResponseWriter) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
+	// Rate limiting
+	if !limiter.Allow() {
+		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
+
+		w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limiter.Limit()))
+		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
+		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
+
+		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
+		return
+	}
+
 	logrus.WithFields(logrus.Fields{
 		"method":   r.Method,
 		"endpoint": "/login",
@@ -132,9 +146,9 @@ func login(w http.ResponseWriter, r *http.Request) {
 
 	var user User
 	query := `
-		SELECT id, fullname, email, updated_fullname_at, userstatus 
-		FROM users 
-		WHERE email = $1 AND password = $2`
+        SELECT id, fullname, email, updated_fullname_at, userstatus 
+        FROM users 
+        WHERE email = $1 AND password = $2`
 	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(
 		&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt, &user.Userstatus,
 	)
@@ -237,7 +251,6 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE id = $1"
 	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus)
 	if err != nil {
-		// Логируем ошибку при запросе пользователя
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Error when requesting a user from the database")
