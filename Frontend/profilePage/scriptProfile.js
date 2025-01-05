@@ -139,7 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPassword = document.getElementById("newpassword").value.trim();
         const newPasswordRetype = document.getElementById("newpasswordretype").value.trim();
     
-        // Проверка: совпадают ли новый пароль и его подтверждение
         if (newPassword !== newPasswordRetype) {
             alert("New passwords do not match!");
             return;
@@ -164,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 alert(result.message || "Failed to update password");
             } else {
-                // Отображаем дату последнего изменения
                 const updatedAtElement = document.getElementById("updatedPasswordAt");
                 updatedAtElement.innerText = `Last updated: ${result.updated_at}`;
                 alert(result.message);
@@ -231,17 +229,14 @@ async function loadUserData() {
             const userData = await response.json();
             console.log("User data:", userData);
 
-            // Заполняем поля на странице
             document.getElementById('fullname').placeholder = userData.fullname;
             document.getElementById('fullname').value = userData.fullname;
 
-            // Обработка даты последнего обновления fullname
             const updatedAtFullname = new Date(userData.updatedFullnameAt);
             document.getElementById('updatedAt').textContent = isNaN(updatedAtFullname)
                 ? 'Invalid date format'
                 : `Fullname last updated: ${updatedAtFullname.toLocaleString()}`;
 
-            // Добавляем вывод даты последнего обновления пароля (если доступна)
             if (userData.updatedAt) {
                 const updatedAtPassword = new Date(userData.updatedAt);
                 document.getElementById('updatedPasswordAt').textContent = isNaN(updatedAtPassword)
