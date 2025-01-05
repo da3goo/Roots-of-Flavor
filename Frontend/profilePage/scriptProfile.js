@@ -53,14 +53,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('edit-btn').addEventListener('click', () => {
         const modal = document.getElementById('editProfileModal');
+        modal.style.display = 'block'; 
+    });
+    document.getElementById('changeNameBtn').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModalName');
+        const previousModal = document.getElementById('editProfileModal');
+        previousModal.style.display = 'none';
+        modal.style.display = 'block';
+        loadUserData(); 
+    });
+    document.getElementById('changePasswordBtn').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModalPassword');
+        const previousModal = document.getElementById('editProfileModal');
+        previousModal.style.display = 'none';
         modal.style.display = 'block';
         loadUserData(); 
     });
     
-    document.getElementById('close-btn').addEventListener('click', () => {
+    document.getElementById('close-btn-edit-profile').addEventListener('click', () => {
         const modal = document.getElementById('editProfileModal');
         modal.style.display = 'none';
     });
+    document.getElementById('close-btn-edit-profile-name').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModalName');
+        const prevModal = document.getElementById('editProfileModal');
+        modal.style.display = 'none';
+        prevModal.style.display = 'block';
+    });
+
+
     document.getElementById('editProfileForm').addEventListener('submit', async function (event) {
         event.preventDefault(); 
     
@@ -109,6 +130,51 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(result.message || 'Failed to update profile');
         }
     });
+
+
+    document.getElementById("submitChangingPassword").addEventListener("click", async (event) => {
+        event.preventDefault();
+    
+        const oldPassword = document.getElementById("oldpassword").value.trim();
+        const newPassword = document.getElementById("newpassword").value.trim();
+        const newPasswordRetype = document.getElementById("newpasswordretype").value.trim();
+    
+        // Проверка: совпадают ли новый пароль и его подтверждение
+        if (newPassword !== newPasswordRetype) {
+            alert("New passwords do not match!");
+            return;
+        }
+    
+        try {
+            const response = await fetch("http://localhost:8080/changePassword", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    oldPassword,
+                    newPassword,
+                    newPasswordRetype,
+                }),
+                credentials: "include",
+            });
+    
+            const result = await response.json();
+    
+            if (!response.ok) {
+                alert(result.message || "Failed to update password");
+            } else {
+                // Отображаем дату последнего изменения
+                const updatedAtElement = document.getElementById("updatedPasswordAt");
+                updatedAtElement.innerText = `Last updated: ${result.updated_at}`;
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error("Error updating password:", error);
+            alert("An error occurred. Please try again.");
+        }
+    });
+    
 
 
     
@@ -165,15 +231,26 @@ async function loadUserData() {
             const userData = await response.json();
             console.log("User data:", userData);
 
-            
+            // Заполняем поля на странице
             document.getElementById('fullname').placeholder = userData.fullname;
             document.getElementById('fullname').value = userData.fullname;
 
-            
-            const updatedAt = new Date(userData.updatedFullnameAt); 
-            document.getElementById('updatedAt').textContent = isNaN(updatedAt)
+            // Обработка даты последнего обновления fullname
+            const updatedAtFullname = new Date(userData.updatedFullnameAt);
+            document.getElementById('updatedAt').textContent = isNaN(updatedAtFullname)
                 ? 'Invalid date format'
-                : `Last updated: ${updatedAt.toLocaleString()}`;
+                : `Fullname last updated: ${updatedAtFullname.toLocaleString()}`;
+
+            // Добавляем вывод даты последнего обновления пароля (если доступна)
+            if (userData.updatedAt) {
+                const updatedAtPassword = new Date(userData.updatedAt);
+                document.getElementById('updatedPasswordAt').textContent = isNaN(updatedAtPassword)
+                    ? 'Invalid date format'
+                    : `Password last updated: ${updatedAtPassword.toLocaleString()}`;
+            } else {
+                document.getElementById('updatedPasswordAt').textContent = 'Password has not been updated yet.';
+            }
+
         } else {
             alert('Session expired or not logged in. Please log in.');
             window.location.href = '/Frontend/client/main_page.html';
@@ -182,10 +259,3 @@ async function loadUserData() {
         console.error('Error loading user data:', error);
     }
 }
-
-
-
-
-
-
-

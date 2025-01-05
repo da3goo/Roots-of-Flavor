@@ -8,6 +8,7 @@ import (
 	"github.com/gorilla/sessions"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/time/rate"
 	"io"
 	"log"
@@ -31,6 +32,7 @@ func main() {
 	http.HandleFunc("/updateName", updateName)
 	http.HandleFunc("/deleteUser", deleteUser)
 	http.HandleFunc("/getUsers", getUsers)
+	http.HandleFunc("/changePassword", changePassword)
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
@@ -51,6 +53,7 @@ type User struct {
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedFullnameAt time.Time `json:"updatedFullnameAt"`
 	Userstatus        string    `json:"userstatus"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
 type Food struct {
 	ID           int    `json:"id"`
@@ -145,12 +148,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User
+	var storedPassword string // Temporary variable for the password
+	// Query to get the password hash
 	query := `
-        SELECT id, fullname, email, updated_fullname_at, userstatus 
+        SELECT id, fullname, email, password, updated_fullname_at, userstatus 
         FROM users 
-        WHERE email = $1 AND password = $2`
-	err = db.QueryRow(query, credentials.Email, credentials.Password).Scan(
-		&user.ID, &user.Fullname, &user.Email, &user.UpdatedFullnameAt, &user.Userstatus,
+        WHERE email = $1`
+	err = db.QueryRow(query, credentials.Email).Scan(
+		&user.ID, &user.Fullname, &user.Email, &storedPassword, &user.UpdatedFullnameAt, &user.Userstatus,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -171,6 +176,22 @@ func login(w http.ResponseWriter, r *http.Request) {
 			"status": "fail",
 		}).Error("Database error during login")
 		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	// Compare hashed password
+	err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(credentials.Password))
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"email":  credentials.Email,
+			"status": "fail",
+		}).Warn("Invalid email or password")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Invalid email or password",
+			"status":  "fail",
+		})
 		return
 	}
 
@@ -248,8 +269,11 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 	}).Info("The user ID was found in the session")
 
 	var user User
-	query := "SELECT id, fullname, email, created_at, updated_fullname_at, userstatus FROM users WHERE id = $1"
-	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.Userstatus)
+	query := `
+        SELECT id, fullname, email, created_at, updated_fullname_at, updated_at, userstatus 
+        FROM users 
+        WHERE id = $1`
+	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Fullname, &user.Email, &user.CreatedAt, &user.UpdatedFullnameAt, &user.UpdatedAt, &user.Userstatus)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -268,12 +292,14 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 		"fullname": user.Fullname,
 	}).Info("User is found")
 
+	// Добавляем updatedAt в ответ
 	response := map[string]interface{}{
 		"id":                user.ID,
 		"fullname":          user.Fullname,
 		"email":             user.Email,
 		"createdAt":         user.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		"updatedFullnameAt": user.UpdatedFullnameAt.Format("2006-01-02T15:04:05Z"),
+		"updatedAt":         user.UpdatedAt.Format("2006-01-02T15:04:05Z"), // добавляем updatedAt
 		"userStatus":        user.Userstatus,
 	}
 
@@ -347,6 +373,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Received registration request for email: %s", credentials.Email)
 
+	// Проверка существующего пользователя с таким же email
 	var existingUserID int
 	err = db.QueryRow("SELECT id FROM users WHERE email = $1", credentials.Email).Scan(&existingUserID)
 	if err != nil && err != sql.ErrNoRows {
@@ -363,10 +390,18 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Хэшируем пароль
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(credentials.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Error hashing password: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
 	log.Println("Inserting new user into database...")
 	var newUserID int
 	query := "INSERT INTO users (fullname, email, password) VALUES ($1, $2, $3) RETURNING id"
-	err = db.QueryRow(query, credentials.Fullname, credentials.Email, credentials.Password).Scan(&newUserID)
+	err = db.QueryRow(query, credentials.Fullname, credentials.Email, string(hashedPassword)).Scan(&newUserID)
 	if err != nil {
 		log.Printf("Error inserting new user: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
@@ -375,6 +410,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("New user registered with ID: %d", newUserID)
 
+	// Создаем сессию
 	session, err := store.Get(r, "user-session")
 	if err != nil {
 		log.Printf("Error creating session: %v", err)
@@ -653,5 +689,104 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		"userCount": len(users),
 	}).Info("Sending response with user data")
 
+	json.NewEncoder(w).Encode(response)
+}
+
+func changePassword(w http.ResponseWriter, r *http.Request) {
+	if !limiter.Allow() {
+		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
+
+		w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limiter.Limit()))
+		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
+		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
+
+		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var requestData struct {
+		OldPassword       string `json:"oldPassword"`
+		NewPassword       string `json:"newPassword"`
+		NewPasswordRetype string `json:"newPasswordRetype"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("Session values: %v", session.Values)
+
+	userID, ok := session.Values["userID"].(int)
+
+	if session.Values["userID"] == nil {
+		log.Println("Session is missing userID")
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	if !ok {
+		log.Println("User not logged in")
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	var currentPassword string
+	query := `SELECT password FROM users WHERE id = $1`
+	err = db.QueryRow(query, userID).Scan(&currentPassword)
+	if err != nil {
+		log.Printf("Error retrieving user password: %v", err)
+		http.Error(w, "Failed to retrieve user password", http.StatusInternalServerError)
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(currentPassword), []byte(requestData.OldPassword))
+	if err != nil {
+		log.Printf("Incorrect old password: %v", err)
+		http.Error(w, "Old password is incorrect", http.StatusUnauthorized)
+		return
+	}
+
+	if requestData.NewPassword != requestData.NewPasswordRetype {
+		http.Error(w, "New passwords do not match", http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(requestData.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Error hashing new password: %v", err)
+		http.Error(w, "Failed to hash new password", http.StatusInternalServerError)
+		return
+	}
+
+	updateQuery := `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2`
+	_, err = db.Exec(updateQuery, string(hashedPassword), userID)
+	if err != nil {
+		log.Printf("Error updating user password: %v", err)
+		http.Error(w, "Failed to update password", http.StatusInternalServerError)
+		return
+	}
+
+	session.Values["updatedAt"] = time.Now().Format("2006-01-02 15:04:05")
+	session.Save(r, w)
+
+	response := map[string]string{
+		"message":    "Password updated successfully",
+		"updated_at": session.Values["updatedAt"].(string),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }

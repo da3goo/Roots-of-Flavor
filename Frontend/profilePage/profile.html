@@ -30,10 +30,23 @@
 
     </div>
 
+    <!-- Modal for EditProfile -->
     <div id="editProfileModal" class="modal">
       <div class="modal-content">
-          <span id="close-btn" class="close">&times;</span>
-          <h2>Edit Profile</h2>             
+          <span id="close-btn-edit-profile" class="close">&times;</span> 
+          <h2>Edit Profile</h2>
+          <button id="changeNameBtn" class="editProfileButton">Change Name</button><br>
+          <button id="changePasswordBtn" class="editProfileButton">Change Password</button><br>
+          <button id="changeEmailBtn" class="editProfileButton">Change Email</button>
+
+      </div>
+  </div>
+  
+    <!-- Modal for changing name -->
+    <div id="editProfileModalName" class="modal">
+      <div class="modal-content">
+          <span id="close-btn-edit-profile-name" class="close">&times;</span>
+          <h2>Change name</h2>             
   
           <form id="editProfileForm">
               <label for="fullname">Full Name:</label>
@@ -43,6 +56,29 @@
           </form>
         </div>
     </div>
+
+    <!-- Modal for changing password -->
+    <div id="editProfileModalPassword" class="modal">
+      <div class="modal-content">
+          <span id="close-btn-edit-profile-password" class="close">&times;</span>
+          <h2>Change password</h2>             
+  
+          <form id="editProfileFormPassword">
+              <p><span id="updatedPasswordAt"></span></p>
+              <label for="oldpassword">Old password:</label>
+              <input type="text" id="oldpassword" name="oldpassword" required><br><br>
+
+              <label for="newpassword">New password:</label>
+              <input type="text" id="newpassword" name="newpassword" required><br><br>
+
+              <label for="newpasswordretype">Retype new password:</label>
+              <input type="text" id="newpasswordretype" name="newpasswordretype" required><br><br>
+              
+              <button id="submitChangingPassword">Save Changes</button>
+          </form>
+        </div>
+    </div>
+    
 
 
     <footer class="footer" >
