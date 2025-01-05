@@ -69,6 +69,13 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.style.display = 'block';
         loadUserData(); 
     });
+    document.getElementById('changeEmailBtn').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModalEmail');
+        const previousModal = document.getElementById('editProfileModal');
+        previousModal.style.display = 'none';
+        modal.style.display = 'block';
+        loadUserData(); 
+    });
     
     document.getElementById('close-btn-edit-profile').addEventListener('click', () => {
         const modal = document.getElementById('editProfileModal');
@@ -76,6 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('close-btn-edit-profile-name').addEventListener('click', () => {
         const modal = document.getElementById('editProfileModalName');
+        const prevModal = document.getElementById('editProfileModal');
+        modal.style.display = 'none';
+        prevModal.style.display = 'block';
+    });
+    document.getElementById('close-btn-edit-profile-password').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModalPassword');
+        const prevModal = document.getElementById('editProfileModal');
+        modal.style.display = 'none';
+        prevModal.style.display = 'block';
+    });
+    document.getElementById('close-btn-edit-profile-email').addEventListener('click', () => {
+        const modal = document.getElementById('editProfileModalEmail');
         const prevModal = document.getElementById('editProfileModal');
         modal.style.display = 'none';
         prevModal.style.display = 'block';
@@ -172,6 +191,38 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("An error occurred. Please try again.");
         }
     });
+
+
+    document.getElementById("submitChangingEmail").addEventListener("click", async (event) => {
+    event.preventDefault();
+
+    const newEmail = document.getElementById("emailInput").value.trim();
+
+    try {
+        const response = await fetch("http://localhost:8080/changeEmail", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ newEmail }),
+            credentials: "include",
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            alert(result.message || "Failed to update email");
+        } else {
+            alert(result.message);
+            location.reload(); 
+        }
+    } catch (error) {
+        console.error("Error updating email:", error);
+        alert("An error occurred. Please try again.");
+    }
+});
+
+    
     
 
 
@@ -245,6 +296,7 @@ async function loadUserData() {
             } else {
                 document.getElementById('updatedPasswordAt').textContent = 'Password has not been updated yet.';
             }
+            document.getElementById('emailInput').value = userData.email;
 
         } else {
             alert('Session expired or not logged in. Please log in.');

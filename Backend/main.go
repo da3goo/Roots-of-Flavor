@@ -33,6 +33,7 @@ func main() {
 	http.HandleFunc("/deleteUser", deleteUser)
 	http.HandleFunc("/getUsers", getUsers)
 	http.HandleFunc("/changePassword", changePassword)
+	http.HandleFunc("/changeEmail", changeEmail)
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
@@ -789,4 +790,83 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+func changeEmail(w http.ResponseWriter, r *http.Request) {
+	// Лимитирование запросов (если необходимо)
+	if !limiter.Allow() {
+		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
+
+		w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limiter.Limit()))
+		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
+		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
+
+		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
+		return
+	}
+
+	// Проверка метода запроса
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Парсим тело запроса
+	var requestData struct {
+		NewEmail string `json:"newEmail"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	// Извлекаем сессию
+	session, err := store.Get(r, "user-session")
+	if err != nil {
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Проверка наличия данных о пользователе в сессии
+	userID, ok := session.Values["userID"].(int)
+	if !ok || userID == 0 {
+		http.Error(w, "User not logged in", http.StatusUnauthorized)
+		return
+	}
+
+	// Проверка, существует ли уже email
+	var existingUserID int
+	err = db.QueryRow("SELECT id FROM users WHERE email = $1", requestData.NewEmail).Scan(&existingUserID)
+	if err != nil && err != sql.ErrNoRows {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	if existingUserID != 0 {
+		// Email уже существует, отправляем ошибку с сообщением
+		http.Error(w, "Email already exists", http.StatusConflict)
+		return
+	}
+
+	// Обновляем email в базе данных
+	_, err = db.Exec("UPDATE users SET email = $1 WHERE id = $2", requestData.NewEmail, userID)
+	if err != nil {
+		http.Error(w, "Failed to update email", http.StatusInternalServerError)
+		return
+	}
+
+	// Обновляем email в сессии
+	session.Values["email"] = requestData.NewEmail
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем успешный ответ
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Email updated successfully"})
 }
