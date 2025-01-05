@@ -694,6 +694,7 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func changePassword(w http.ResponseWriter, r *http.Request) {
+	//Request limitting
 	if !limiter.Allow() {
 		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
 
@@ -701,11 +702,20 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
 		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
 
+		logrus.WithFields(logrus.Fields{
+			"resetTime": resetTime,
+			"remaining": limiter.Burst(),
+			"limit":     limiter.Limit(),
+		}).Warn("Rate limit exceeded")
+
 		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
 		return
 	}
 
 	if r.Method != http.MethodPost {
+		logrus.WithFields(logrus.Fields{
+			"method": r.Method,
+		}).Warn("Invalid request method")
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -718,28 +728,35 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Warn("Invalid JSON format")
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		log.Printf("Error retrieving session: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error retrieving session")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
-	log.Printf("Session values: %v", session.Values)
+
+	logrus.WithFields(logrus.Fields{
+		"sessionValues": session.Values,
+	}).Debug("Session values retrieved")
 
 	userID, ok := session.Values["userID"].(int)
-
 	if session.Values["userID"] == nil {
-		log.Println("Session is missing userID")
+		logrus.Warn("Session is missing userID")
 		http.Error(w, "User not logged in", http.StatusUnauthorized)
 		return
 	}
 
 	if !ok {
-		log.Println("User not logged in")
+		logrus.Warn("User not logged in")
 		http.Error(w, "User not logged in", http.StatusUnauthorized)
 		return
 	}
@@ -748,26 +765,38 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 	query := `SELECT password FROM users WHERE id = $1`
 	err = db.QueryRow(query, userID).Scan(&currentPassword)
 	if err != nil {
-		log.Printf("Error retrieving user password: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+			"error":  err.Error(),
+		}).Error("Error retrieving user password")
 		http.Error(w, "Failed to retrieve user password", http.StatusInternalServerError)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(currentPassword), []byte(requestData.OldPassword))
 	if err != nil {
-		log.Printf("Incorrect old password: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+			"error":  err.Error(),
+		}).Warn("Incorrect old password")
 		http.Error(w, "Old password is incorrect", http.StatusUnauthorized)
 		return
 	}
 
 	if requestData.NewPassword != requestData.NewPasswordRetype {
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+		}).Warn("New passwords do not match")
 		http.Error(w, "New passwords do not match", http.StatusBadRequest)
 		return
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(requestData.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		log.Printf("Error hashing new password: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+			"error":  err.Error(),
+		}).Error("Error hashing new password")
 		http.Error(w, "Failed to hash new password", http.StatusInternalServerError)
 		return
 	}
@@ -775,13 +804,29 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 	updateQuery := `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2`
 	_, err = db.Exec(updateQuery, string(hashedPassword), userID)
 	if err != nil {
-		log.Printf("Error updating user password: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"userID":   userID,
+			"error":    err.Error(),
+			"password": requestData.NewPassword,
+		}).Error("Error updating user password")
 		http.Error(w, "Failed to update password", http.StatusInternalServerError)
 		return
 	}
 
 	session.Values["updatedAt"] = time.Now().Format("2006-01-02 15:04:05")
-	session.Save(r, w)
+	err = session.Save(r, w)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+			"error":  err.Error(),
+		}).Error("Error saving session after password update")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"userID": userID,
+	}).Info("Password updated successfully")
 
 	response := map[string]string{
 		"message":    "Password updated successfully",
@@ -793,7 +838,6 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func changeEmail(w http.ResponseWriter, r *http.Request) {
-	// Лимитирование запросов (если необходимо)
 	if !limiter.Allow() {
 		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
 
@@ -801,72 +845,100 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
 		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
 
+		logrus.WithFields(logrus.Fields{
+			"resetTime": resetTime,
+			"remaining": limiter.Burst(),
+			"limit":     limiter.Limit(),
+		}).Warn("Rate limit exceeded")
+
 		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
 		return
 	}
 
-	// Проверка метода запроса
 	if r.Method != http.MethodPost {
+		logrus.WithFields(logrus.Fields{
+			"method": r.Method,
+		}).Warn("Invalid request method")
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Парсим тело запроса
 	var requestData struct {
 		NewEmail string `json:"newEmail"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Warn("Invalid JSON format")
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
-	// Извлекаем сессию
 	session, err := store.Get(r, "user-session")
 	if err != nil {
-		log.Printf("Error retrieving session: %v", err)
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Error retrieving session")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Проверка наличия данных о пользователе в сессии
+	// Проверка наличия userID в сессии
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
+		logrus.Warn("User not logged in")
 		http.Error(w, "User not logged in", http.StatusUnauthorized)
 		return
 	}
 
-	// Проверка, существует ли уже email
 	var existingUserID int
 	err = db.QueryRow("SELECT id FROM users WHERE email = $1", requestData.NewEmail).Scan(&existingUserID)
 	if err != nil && err != sql.ErrNoRows {
+		logrus.WithFields(logrus.Fields{
+			"newEmail": requestData.NewEmail,
+			"error":    err.Error(),
+		}).Error("Database error when checking email existence")
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
 	if existingUserID != 0 {
-		// Email уже существует, отправляем ошибку с сообщением
+		logrus.WithFields(logrus.Fields{
+			"newEmail": requestData.NewEmail,
+		}).Warn("Email already exists")
 		http.Error(w, "Email already exists", http.StatusConflict)
 		return
 	}
 
-	// Обновляем email в базе данных
 	_, err = db.Exec("UPDATE users SET email = $1 WHERE id = $2", requestData.NewEmail, userID)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"userID":   userID,
+			"newEmail": requestData.NewEmail,
+			"error":    err.Error(),
+		}).Error("Failed to update email")
 		http.Error(w, "Failed to update email", http.StatusInternalServerError)
 		return
 	}
 
-	// Обновляем email в сессии
 	session.Values["email"] = requestData.NewEmail
 	err = session.Save(r, w)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"userID": userID,
+			"error":  err.Error(),
+		}).Error("Failed to save session after email update")
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	// Отправляем успешный ответ
+	logrus.WithFields(logrus.Fields{
+		"userID":   userID,
+		"newEmail": requestData.NewEmail,
+	}).Info("Email updated successfully")
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Email updated successfully"})
 }
