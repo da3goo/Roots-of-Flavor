@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/handlers"
@@ -11,9 +12,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/time/rate"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/smtp"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -34,6 +38,7 @@ func main() {
 	http.HandleFunc("/getUsers", getUsers)
 	http.HandleFunc("/changePassword", changePassword)
 	http.HandleFunc("/changeEmail", changeEmail)
+	http.HandleFunc("/send", handleForm)
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
@@ -885,7 +890,6 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверка наличия userID в сессии
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
 		logrus.Warn("User not logged in")
@@ -941,4 +945,122 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Email updated successfully"})
+}
+
+func sendEmail(from, password, to, subject, message, filename, fileContent string) error {
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	logrus.WithFields(logrus.Fields{
+		"from":    from,
+		"to":      to,
+		"subject": subject,
+	}).Info("Sending email started")
+
+	mime := "MIME-version: 1.0;\nContent-Type: multipart/mixed; boundary=\"boundary1\"\n\n"
+	body := "--boundary1\n"
+	body += "Content-Type: text/plain; charset=\"utf-8\"\n\n"
+	body += message + "\n\n"
+
+	if filename != "" && fileContent != "" {
+		body += "--boundary1\n"
+		body += "Content-Type: application/octet-stream; name=\"" + filename + "\"\n"
+		body += "Content-Disposition: attachment; filename=\"" + filename + "\"\n"
+		body += "Content-Transfer-Encoding: base64\n\n"
+		body += fileContent + "\n"
+	}
+
+	msg := "From: " + from + "\n" +
+		"To: " + to + "\n" +
+		"Subject: " + subject + "\n" +
+		mime + body + "--boundary1--"
+
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, []byte(msg))
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"from":    from,
+			"to":      to,
+			"subject": subject,
+			"error":   err.Error(),
+		}).Error("Failed to send email")
+		return err
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"from":    from,
+		"to":      to,
+		"subject": subject,
+	}).Info("Email sent successfully")
+
+	return nil
+}
+
+func handleForm(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+		subject := r.FormValue("subject")
+		message := r.FormValue("message")
+
+		logrus.WithFields(logrus.Fields{
+			"email":   email,
+			"subject": subject,
+			"message": message,
+		}).Info("Processing form submission")
+
+		file, fileHeader, err := r.FormFile("file")
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Error receiving file")
+			http.Error(w, "Error receiving file", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		logrus.WithFields(logrus.Fields{
+			"filename": fileHeader.Filename,
+			"size":     fileHeader.Size,
+		}).Info("File uploaded")
+
+		fileBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err.Error(),
+			}).Error("Error reading file")
+			http.Error(w, "Error reading file", http.StatusInternalServerError)
+			return
+		}
+
+		fileContent := base64.StdEncoding.EncodeToString(fileBytes)
+
+		_, filename := filepath.Split(fileHeader.Filename)
+
+		err = sendEmail(email, password, "kantaydaulet777@gmail.com", subject, message, filename, fileContent)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"from":    email,
+				"to":      "kantaydaulet777@gmail.com",
+				"subject": subject,
+				"error":   err.Error(),
+			}).Error("Error sending email")
+			http.Error(w, "Error sending email: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		logrus.WithFields(logrus.Fields{
+			"from":    email,
+			"to":      "kantaydaulet777@gmail.com",
+			"subject": subject,
+		}).Info("Email sent successfully")
+
+		fmt.Fprintf(w, "The message was sent successfully!")
+	} else {
+		logrus.WithFields(logrus.Fields{
+			"method": r.Method,
+		}).Warn("Unsupported method")
+		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
+	}
 }

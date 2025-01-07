@@ -339,6 +339,9 @@
       color: #e0e0e0;
       font-weight: bold;
   }
+  #contactForm{
+    margin-top: -320px;
+  }
 
 
     </style>
@@ -455,12 +458,12 @@
                         </p>
                         <p>
                           <a href="mailto:sanzharvaisov@gmail.com"
-                            >bshekish@gmail.com</a
+                            >sanzharvaisov@gmail.com</a
                           >
                         </p>
                         <p>
                           <a href="mailto:baglanovbaglan227@gmail.com"
-                            >bshekish@gmail.com</a
+                            >baglanovbaglan227@gmail.com</a
                           >
                         </p>
                       </div>
@@ -468,175 +471,47 @@
                   </div>
                 </div>
               </div>
-              <!-- Contact Form -->
-              <div class="col-lg-8">
-                <div class="contact-wrap">
-                  <h3 class="mb-4 text-center">Get in touch with us</h3>
-                  <div
-                    id="form-message-warning"
-                    class="mb-4 w-100 text-center"
-                  ></div>
+              
 
-                  <form
-                    method="POST"
-                    id="contactForm"
-                    name="contactForm"
-                    class="contactForm"
-                    novalidate="novalidate"
-                  >
-                    <div class="row">
-                      <div class="col-md-12">
-                        <div class="form-group">
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="name"
-                            id="name"
-                            placeholder="Name"
-                            required
-                          />
-                          <div
-                            class="error-message"
-                            id="name-error"
-                            style="color: red; display: none"
-                          >
-                            This field is required!
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-12">
-                        <div class="form-group">
-                          <input
-                            type="email"
-                            class="form-control"
-                            name="email"
-                            id="email"
-                            placeholder="Email"
-                            required
-                          />
-                          <div
-                            class="error-message"
-                            id="email-error"
-                            style="color: red; display: none"
-                          >
-                            This field is required!
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-12">
-                        <div class="form-group">
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="subject"
-                            id="subject"
-                            placeholder="Subject"
-                            required
-                          />
-                          <div
-                            class="error-message"
-                            id="subject-error"
-                            style="color: red; display: none"
-                          >
-                            This field is required!
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-12">
-                        <div class="form-group">
-                          <textarea
-                            name="message"
-                            class="form-control"
-                            id="message"
-                            cols="30"
-                            rows="8"
-                            placeholder="Message"
-                            required
-                          ></textarea>
-                          <div
-                            class="error-message"
-                            id="message-error"
-                            style="color: red; display: none"
-                          >
-                            This field is required!
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-12">
-                        <div class="form-group">
-                          <input
-                            type="submit"
-                            value="Send Message"
-                            class="btn btn-primary"
-                          />
-                          <div class="submitting"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                  <div
-                    id="error-message"
-                    class="w-100 text-center text-danger mt-3"
-                    style="display: none"
-                  >
-                    <p>Please fill out all the required fields!</p>
-                  </div>
-                  <div class="loader" id="loader" style="display: none"></div>
-                  <div
-                    id="success-message"
-                    class="w-100 text-center"
-                    style="display: none"
-                  >
-                    <p>Your message was sent, thank you!</p>
-                    <p>
-                      <a href="javascript:void(0);" id="resend-form"
-                        >Send form again</a
-                      >
-                    </p>
-                  </div>
-                </div>
-              </div>
+
+
+              
+              
             </div>
           </div>
         </div>
       </div>
-    </div>
-
-    <script>
-      document.getElementById("custom-aboutUsText").style.color = "#d13d64";
-      document.getElementById("custom-aboutUsText").style.textDecoration =
-        "underline";
-      document.body.style.backgroundColor = "beige";
+      <form method="POST" action="http://localhost:8080/send" enctype="multipart/form-data" id="contactForm">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Email Password:</label>
+          <input type="password" class="form-control" name="password" id="password" placeholder="Enter your email password" required />
+        </div>
+        <div class="form-group">
+          <label for="subject">Subject:</label>
+          <input type="text" class="form-control" name="subject" id="subject" placeholder="Enter the subject" required />
+        </div>
+        <div class="form-group">
+          <label for="message">Message:</label>
+          <textarea class="form-control" name="message" id="message" rows="5" placeholder="Write your message here" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="file">Attach a file (optional):</label>
+          <input type="file" class="form-control" name="file" id="file" />
+        </div>
+        <button type="submit" class="btn btn-primary">Send Message</button>
+      </form>
       
+      
+      
+    </div>
+    
 
-      const darkModeToggle = document.getElementById('custom-darkModeBtn');
-        const body = document.body;
+    <script src="aboutUsJS.js">
 
-        if (localStorage.getItem('dark-mode') === 'enabled') {
-            body.classList.add('dark-mode');
-            
-        }
-
-        // Toggle button handler
-        darkModeToggle.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            if (body.classList.contains('dark-mode')) {
-                localStorage.setItem('dark-mode', 'enabled');
-                document.body.style.backgroundColor = "#121212";
-                document.getElementById('aboutUsText').style.color = '#e0e0e0';
-                document.getElementById('aboutUsP1').style.color = '#e0e0e0';
-                document.getElementById('aboutUsP2').style.color = '#e0e0e0';
-
-            } else {
-                localStorage.setItem('dark-mode', 'disabled');
-                document.body.style.backgroundColor = "beige";
-                document.getElementById('aboutUsText').style.color = '';
-                document.getElementById('aboutUsP1').style.color = '#606060';
-                document.getElementById('aboutUsP2').style.color = '#606060';
-
-
-            }
-        });
     </script>
   </body>
 </html>

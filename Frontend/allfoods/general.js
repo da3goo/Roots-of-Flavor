@@ -44,10 +44,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (isLiked) {
                 likeIcon.classList.replace('far', 'fas');
-                likeCount.textContent = ++currentLikes;
             } else {
                 likeIcon.classList.replace('fas', 'far');
-                likeCount.textContent = --currentLikes;
             }
         });
     }
@@ -58,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) {
                 throw new Error('Food not found or server error');
             }
-            return response.json(); // Парсиинг
+            return response.json(); 
         })
         .then(data => {
             displayFoodData(data); // пон
