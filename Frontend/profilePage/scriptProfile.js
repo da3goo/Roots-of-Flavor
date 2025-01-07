@@ -3,6 +3,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("admin-btn").addEventListener("click", function () {
         window.location.href = "/Frontend/client/adminPage.html";
     });
+    document.getElementById("contact-us-btn").addEventListener("click", function () {
+        window.location.href = "/Frontend/client/aboutUs.html";
+    });
+
     
 
     const logOutButton = document.getElementById('logOutText');

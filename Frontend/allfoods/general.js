@@ -113,4 +113,20 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Dark mode toggle button not found');
     }
 });
+
+document.getElementById('like-button').addEventListener('click', function () {
+    var foodName = document.getElementById('foodName').textContent.trim();
+
+    // Отправляем запрос на сервер
+    fetch(`http://localhost:8080/addFoodToSaved?name=${encodeURIComponent(foodName)}`, {
+        method: 'GET',
+    })
+    .then(response => response.text())
+    .then(data => {
+        alert(data);  
+    })
+    .catch(error => {
+        alert('Error: ' + error.message);
+    });
+});
  

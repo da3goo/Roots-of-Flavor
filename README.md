@@ -69,6 +69,48 @@ git clone https://github.com/da3goo/Roots-of-Flavor.git
    - [Official Git website](https://git-scm.com/)
    - [GitHub](https://github.com/) for hosting and collaboration on the project.
 
+9. **Logrus**:
+   - Structured logger for Go, used for advanced logging features.
+   - [Official Logrus GitHub](https://github.com/sirupsen/logrus)
+
+10. **SMTP**:
+   - Protocol used for sending emails in the project, especially for the email functionalities.
+   
+11. **Bcrypt**:
+   - A Go package for hashing passwords securely.
+   - [Official Bcrypt GitHub](https://github.com/golang/crypto/tree/master/bcrypt)
+
+12. **Base64**:
+   - Encoding/decoding method used for handling data in textual form, often used for encoding binary data in email communication.
+
+
+
+## Update history
+
+- **v1.0**: Realese
+- **v1.0.1**: Bugs fixed
+- **v1.1**: Added Registrationm and profile handler
+- **v1.1.1**: Added delete function and fixed some bugs
+- **v1.1.2**: More optimized
+- **v1.2**: Realese!
+- **v1.2.1**: Redirection added, and fixed bugs
+- **v1.3**: Added new Admin Page, and functions for it.Admin can view the data by sorting, and filtering
+- **v1.3.1**: More optimized, and fixed bugs
+- **v1.4.**: Added pagination.
+- **v1.4.1**: Added logrus support for methods
+- **v1.4.2**: Rate limiting for login method. Secure from broot force attacks!
+- **v1.4.3**: More secure! Added hashing passwords. Also now , you can change your password and emails
+- **v1.4.4**: Error handlings added. More logrus support
+- **v1.5**: Added email sending feature. You can now contact us with real google account email!
+- **v1.5.1**: More optimized
+
+
+
+
+
+
+
+
 
 
 

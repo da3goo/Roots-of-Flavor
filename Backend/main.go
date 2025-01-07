@@ -257,6 +257,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 func checkSession(w http.ResponseWriter, r *http.Request) {
 	session, _ := store.Get(r, "user-session")
 
+	// Логируем содержимое сессии для диагностики
 	logrus.WithFields(logrus.Fields{
 		"session": session.Values,
 	}).Info("Session contents")
@@ -298,19 +299,25 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 		"fullname": user.Fullname,
 	}).Info("User is found")
 
-	// Добавляем updatedAt в ответ
+	// Преобразуем данные в JSON
 	response := map[string]interface{}{
 		"id":                user.ID,
 		"fullname":          user.Fullname,
 		"email":             user.Email,
 		"createdAt":         user.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		"updatedFullnameAt": user.UpdatedFullnameAt.Format("2006-01-02T15:04:05Z"),
-		"updatedAt":         user.UpdatedAt.Format("2006-01-02T15:04:05Z"), // добавляем updatedAt
+		"updatedAt":         user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		"userStatus":        user.Userstatus,
 	}
 
+	// Отправляем ответ клиенту в формате JSON
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to encode response to JSON")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+	}
 }
 
 func register(w http.ResponseWriter, r *http.Request) {
