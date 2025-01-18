@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/smtp"
 	"os"
@@ -22,9 +23,10 @@ import (
 )
 
 var (
-	db      *sql.DB
-	store   = sessions.NewCookieStore([]byte("key1"))
-	limiter = rate.NewLimiter(1, 3)
+	db                *sql.DB
+	store             = sessions.NewCookieStore([]byte("key1"))
+	limiter           = rate.NewLimiter(1, 3)
+	verificationCodes = make(map[string]string)
 )
 
 func main() {
@@ -40,6 +42,8 @@ func main() {
 	http.HandleFunc("/changeEmail", changeEmail)
 	http.HandleFunc("/send", handleForm)
 	http.HandleFunc("/deleteUserAdmin", deleteUserFromAdminPage)
+	http.HandleFunc("/verifyCode", verifyCode)
+
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
 	origins := handlers.AllowedOrigins([]string{"http://127.0.0.1:5500"})
@@ -71,18 +75,22 @@ type Food struct {
 	ImageURL     string `json:"image_url"`
 	Country      string `json:"country"`
 }
+type RegistrationData struct {
+	Fullname string `json:"fullname"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
-// Backend functions
 func init() {
 	desktopPath, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatalf("cannt get desctop directory %v", err)
+		log.Fatalf("Cannot get desktop directory: %v", err)
 	}
 	logFilePath := filepath.Join(desktopPath, "Desktop", "logs.txt")
 
 	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Fatalf("Couldnt open log file %v", err)
+		log.Fatalf("Couldn't open log file: %v", err)
 	}
 
 	logrus.SetFormatter(&logrus.JSONFormatter{})
@@ -94,18 +102,18 @@ func init() {
 		logrus.WithFields(logrus.Fields{
 			"error":   err.Error(),
 			"connStr": connStr,
-		}).Fatal("Error connecting DB")
+		}).Fatal("Error connecting to DB")
 	}
 
 	err = db.Ping()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
-		}).Fatal("Error connecting D")
+		}).Fatal("Error connecting to DB")
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"status": "success",
-		}).Info("Successful connection to DB")
+		}).Info("Successfully connected to DB")
 	}
 }
 func addCORSHeaders(w http.ResponseWriter) {
@@ -305,7 +313,6 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 		"fullname": user.Fullname,
 	}).Info("User is found")
 
-	// Преобразуем данные в JSON
 	response := map[string]interface{}{
 		"id":                user.ID,
 		"fullname":          user.Fullname,
@@ -316,7 +323,6 @@ func checkSession(w http.ResponseWriter, r *http.Request) {
 		"userStatus":        user.Userstatus,
 	}
 
-	// Отправляем ответ клиенту в формате JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -342,47 +348,7 @@ func register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var rawData map[string]interface{}
-	err = json.Unmarshal(body, &rawData)
-	if err != nil {
-		log.Printf("Error decoding JSON: %v", err)
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-
-	expectedKeys := map[string]string{
-		"fullname": "string",
-		"email":    "string",
-		"password": "string",
-	}
-
-	for key, expectedType := range expectedKeys {
-		value, exists := rawData[key]
-		if !exists {
-			log.Printf("Missing key: %s", key)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"message": "Incorrect key name"})
-			return
-		}
-
-		switch expectedType {
-		case "string":
-			if _, ok := value.(string); !ok {
-				log.Printf("Invalid type for key: %s, expected: %s", key, expectedType)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(map[string]string{"message": "Invalid type for key: " + key})
-				return
-			}
-		}
-	}
-
-	var credentials struct {
-		Fullname string `json:"fullname"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var credentials RegistrationData
 	err = json.Unmarshal(body, &credentials)
 	if err != nil {
 		log.Printf("Error decoding JSON into struct: %v", err)
@@ -392,7 +358,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Received registration request for email: %s", credentials.Email)
 
-	// Проверка существующего пользователя с таким же email
+	if credentials.Fullname == "" || credentials.Email == "" || credentials.Password == "" {
+		log.Println("Missing required fields")
+		http.Error(w, "Missing required fields", http.StatusBadRequest)
+		return
+	}
+
 	var existingUserID int
 	err = db.QueryRow("SELECT id FROM users WHERE email = $1", credentials.Email).Scan(&existingUserID)
 	if err != nil && err != sql.ErrNoRows {
@@ -403,54 +374,42 @@ func register(w http.ResponseWriter, r *http.Request) {
 
 	if existingUserID != 0 {
 		log.Printf("User already exists with email: %s", credentials.Email)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict) // 409 Conflict
-		json.NewEncoder(w).Encode(map[string]string{"error": "User already exists with this email"})
+		http.Error(w, "User already exists with this email", http.StatusConflict)
 		return
 	}
 
-	// Хэшируем пароль
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(credentials.Password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Printf("Error hashing password: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	verificationCode := fmt.Sprintf("%04d", rand.Intn(10000))
 
-	log.Println("Inserting new user into database...")
-	var newUserID int
-	query := "INSERT INTO users (fullname, email, password) VALUES ($1, $2, $3) RETURNING id"
-	err = db.QueryRow(query, credentials.Fullname, credentials.Email, string(hashedPassword)).Scan(&newUserID)
+	var newTempUserID int
+	query := `
+		INSERT INTO temp_users (fullname, email, password, verification_code, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, NOW(), NOW()) 
+		RETURNING id`
+	err = db.QueryRow(query, credentials.Fullname, credentials.Email, credentials.Password, verificationCode).Scan(&newTempUserID)
 	if err != nil {
-		log.Printf("Error inserting new user: %v", err)
+		log.Printf("Error inserting temp user: %v", err)
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("New user registered with ID: %d", newUserID)
+	log.Printf("Temporary user created with ID: %d", newTempUserID)
 
-	// Создаем сессию
-	session, err := store.Get(r, "user-session")
-	if err != nil {
-		log.Printf("Error creating session: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+	go func() {
+		subject := "Your Verification Code"
+		message := fmt.Sprintf("Here is your verification code: %s", verificationCode)
+		from := "kantaidaulet@gmail.com"
+		password := "vxaf gbyk lqqy zhyb"
 
-	session.Values["userID"] = newUserID
-	session.Values["fullname"] = credentials.Fullname
-	session.Values["email"] = credentials.Email
-	err = session.Save(r, w)
-	if err != nil {
-		log.Printf("Error saving session: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-
-	log.Printf("Session created for user: %s", credentials.Email)
+		err := sendEmail(from, password, credentials.Email, subject, message, "", "")
+		if err != nil {
+			log.Printf("Failed to send verification email to %s: %v", credentials.Email, err)
+		} else {
+			log.Printf("Verification code sent to %s: %s", credentials.Email, verificationCode)
+		}
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully"})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Verification code sent to email"})
 }
 
 func updateName(w http.ResponseWriter, r *http.Request) {
@@ -1106,4 +1065,73 @@ func deleteUserFromAdminPage(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "User with ID %s deleted successfully", id)
+}
+
+func verifyCode(w http.ResponseWriter, r *http.Request) {
+	log.Println("Verification request received.")
+
+	if r.Method != http.MethodPost {
+		log.Println("Invalid request method:", r.Method)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var requestData struct {
+		Email            string `json:"email"`
+		VerificationCode string `json:"code"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		log.Printf("Error decoding JSON: %v", err)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	var tempUserID int
+	var storedCode, plainPassword string
+	err = db.QueryRow("SELECT id, verification_code, password FROM temp_users WHERE email = $1", requestData.Email).Scan(&tempUserID, &storedCode, &plainPassword)
+	if err != nil {
+		log.Printf("Error retrieving temp user: %v", err)
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if storedCode != requestData.VerificationCode {
+		log.Println("Invalid verification code")
+		http.Error(w, "Invalid verification code", http.StatusBadRequest)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Error hashing password: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var newUserID int
+	query := `
+		INSERT INTO users (fullname, email, password, userstatus, created_at, updated_at)
+		SELECT fullname, email, $1, 'active', NOW(), NOW()
+		FROM temp_users WHERE id = $2
+		RETURNING id`
+	err = db.QueryRow(query, hashedPassword, tempUserID).Scan(&newUserID)
+	if err != nil {
+		log.Printf("Error inserting user into main table: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = db.Exec("DELETE FROM temp_users WHERE id = $1", tempUserID)
+	if err != nil {
+		log.Printf("Error deleting temp user: %v", err)
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	log.Println("User successfully verified and moved to main table")
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "Email verified and user registered"})
 }

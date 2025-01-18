@@ -216,7 +216,6 @@ async function checkUserOnLoad() {
 checkUserOnLoad();
 
 
-
 //Reg
 document.getElementById('registerForm').addEventListener('submit', async function (event) {
     event.preventDefault();
@@ -235,16 +234,37 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         const result = await response.json();
 
         if (response.ok) {
-            console.log("Registration successful:", result);
-            alert(result.message || 'Registration successful!'); 
-            window.location.href = '/Frontend/client/main_page.html';
+            alert(result.message || 'Verification code sent to email');
+            document.getElementById('verifyModal').style.display = 'block';
+
+            // Убираем кнопку "Verify Code" из модального окна
+            document.getElementById('verifyCodeButton').addEventListener('click', async function () {
+                const code = document.getElementById('verificationCode').value;
+
+                const verifyResponse = await fetch('http://localhost:8080/verifyCode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })  // отправляем email и код
+                });
+
+                const verifyResult = await verifyResponse.json();
+
+                if (verifyResponse.ok) {
+                    alert(verifyResult.message || 'Email verified successfully!');
+                    window.location.href = '/Frontend/client/main_page.html';  // перенаправление после успешной верификации
+                } else {
+                    alert(verifyResult.error || 'Verification failed. Please try again.');
+                }
+            });
         } else {
-            console.error("Registration failed:", result);
-            alert(result.error || "Registration failed!");
+            alert(result.error || 'Registration failed');
         }
     } catch (error) {
-        console.error('Registration error:', error);
-        alert('Could not connect to the server. Please try again later.');
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
     }
 });
+
+
+
 
