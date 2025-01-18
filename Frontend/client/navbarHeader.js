@@ -237,14 +237,13 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             alert(result.message || 'Verification code sent to email');
             document.getElementById('verifyModal').style.display = 'block';
 
-            // Убираем кнопку "Verify Code" из модального окна
             document.getElementById('verifyCodeButton').addEventListener('click', async function () {
                 const code = document.getElementById('verificationCode').value;
 
                 const verifyResponse = await fetch('http://localhost:8080/verifyCode', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, code })  // отправляем email и код
+                    body: JSON.stringify({ email, code })  
                 });
 
                 const verifyResult = await verifyResponse.json();
