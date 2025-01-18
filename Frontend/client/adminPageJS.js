@@ -47,7 +47,7 @@ async function fetchUsers(sortBy = '', emailFilter = '', page = 1) {
 
 function renderTable(users) {
     const tableBody = document.getElementById('userTableBody');
-    tableBody.innerHTML = ''; 
+    tableBody.innerHTML = '';
 
     users.forEach(user => {
         const row = document.createElement('tr');
@@ -57,10 +57,12 @@ function renderTable(users) {
             <td>${user.email}</td>
             <td>${user.userstatus}</td>
             <td>${new Date(user.createdAt).toLocaleString()}</td>
+            <td><button onclick="deleteUser(${user.id})">Delete</button></td>
         `;
         tableBody.appendChild(row);
     });
 }
+
 
 function renderPagination() {
     const paginationContainer = document.getElementById('paginationContainer');
@@ -127,6 +129,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     await checkSession(); 
     fetchUsers(); 
 });
+
+
+async function deleteUser(userId) {
+    try {
+        const response = await fetch(`http://localhost:8080/deleteUserAdmin?id=${userId}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            const errorMessage = await response.text();
+            console.error('Error deleting user:', errorMessage);
+            alert(`Failed to delete user: ${errorMessage}`);
+            return;
+        }
+
+        console.log(`User with ID ${userId} deleted successfully`);
+        alert(`User with ID ${userId} deleted successfully`);
+        fetchUsers(); // Обновляем таблицу пользователей
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to delete user');
+    }
+}
+
+
 
 
 

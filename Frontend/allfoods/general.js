@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('like-button').addEventListener('click', function () {
     var foodName = document.getElementById('foodName').textContent.trim();
 
-    // Отправляем запрос на сервер
+    // Sending getting foodname by parameters
     fetch(`http://localhost:8080/addFoodToSaved?name=${encodeURIComponent(foodName)}`, {
         method: 'GET',
     })

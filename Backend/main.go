@@ -39,7 +39,7 @@ func main() {
 	http.HandleFunc("/changePassword", changePassword)
 	http.HandleFunc("/changeEmail", changeEmail)
 	http.HandleFunc("/send", handleForm)
-
+	http.HandleFunc("/deleteUserAdmin", deleteUserFromAdminPage)
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
 	origins := handlers.AllowedOrigins([]string{"http://127.0.0.1:5500"})
@@ -74,30 +74,38 @@ type Food struct {
 
 // Backend functions
 func init() {
+	desktopPath, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalf("cannt get desctop directory %v", err)
+	}
+	logFilePath := filepath.Join(desktopPath, "Desktop", "logs.txt")
+
+	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatalf("Couldnt open log file %v", err)
+	}
 
 	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(io.MultiWriter(os.Stdout, logFile))
 
-	logrus.SetOutput(os.Stdout)
-
-	var err error
 	connStr := "postgres://postgres.omqkkeruydkttwwkdnib:50TADocqYFe4CFTx@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":   err.Error(),
 			"connStr": connStr,
-		}).Fatal("Failed to open database connection")
+		}).Fatal("Error connecting DB")
 	}
 
 	err = db.Ping()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err.Error(),
-		}).Fatal("Error connecting to the database")
+		}).Fatal("Error connecting D")
 	} else {
 		logrus.WithFields(logrus.Fields{
 			"status": "success",
-		}).Info("Connected to Database")
+		}).Info("Successful connection to DB")
 	}
 }
 func addCORSHeaders(w http.ResponseWriter) {
@@ -154,8 +162,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user User
-	var storedPassword string // Temporary variable for the password
-	// Query to get the password hash
+	var storedPassword string
 	query := `
         SELECT id, fullname, email, password, updated_fullname_at, userstatus 
         FROM users 
@@ -185,7 +192,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Compare hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(storedPassword), []byte(credentials.Password))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -1017,33 +1023,40 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 			"message": message,
 		}).Info("Processing form submission")
 
+		var filename string
+		var fileContent string
+
 		file, fileHeader, err := r.FormFile("file")
 		if err != nil {
+			if err == http.ErrMissingFile {
+				logrus.Info("No file uploaded, proceeding without attachment")
+			} else {
+				logrus.WithFields(logrus.Fields{
+					"error": err.Error(),
+				}).Error("Error receiving file")
+				http.Error(w, "Error receiving file", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			defer file.Close()
+
 			logrus.WithFields(logrus.Fields{
-				"error": err.Error(),
-			}).Error("Error receiving file")
-			http.Error(w, "Error receiving file", http.StatusInternalServerError)
-			return
+				"filename": fileHeader.Filename,
+				"size":     fileHeader.Size,
+			}).Info("File uploaded")
+
+			fileBytes, err := ioutil.ReadAll(file)
+			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"error": err.Error(),
+				}).Error("Error reading file")
+				http.Error(w, "Error reading file", http.StatusInternalServerError)
+				return
+			}
+
+			fileContent = base64.StdEncoding.EncodeToString(fileBytes)
+			_, filename = filepath.Split(fileHeader.Filename)
 		}
-		defer file.Close()
-
-		logrus.WithFields(logrus.Fields{
-			"filename": fileHeader.Filename,
-			"size":     fileHeader.Size,
-		}).Info("File uploaded")
-
-		fileBytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err.Error(),
-			}).Error("Error reading file")
-			http.Error(w, "Error reading file", http.StatusInternalServerError)
-			return
-		}
-
-		fileContent := base64.StdEncoding.EncodeToString(fileBytes)
-
-		_, filename := filepath.Split(fileHeader.Filename)
 
 		err = sendEmail(email, password, "kantaydaulet777@gmail.com", subject, message, filename, fileContent)
 		if err != nil {
@@ -1070,4 +1083,27 @@ func handleForm(w http.ResponseWriter, r *http.Request) {
 		}).Warn("Unsupported method")
 		http.Error(w, "Unsupported method", http.StatusMethodNotAllowed)
 	}
+}
+
+func deleteUserFromAdminPage(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+		return
+	}
+
+	result, err := db.Exec("DELETE FROM users WHERE id = $1", id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error deleting user: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "User with ID %s deleted successfully", id)
 }
