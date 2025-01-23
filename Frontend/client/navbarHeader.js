@@ -117,7 +117,11 @@ document.getElementById('loginForm').addEventListener('submit', async function (
             userIsOnline = true;
             currentUser = result;
             document.getElementById('loginModal').style.display = 'none';
-            document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html">Profile</a>';
+            document.getElementById('verifyModalLogin').style.display = 'block';
+
+            localStorage.setItem('tempLoginEmail', email);
+
+
         } else if (response.status === 429) {
             
             const resetTime = response.headers.get('X-RateLimit-Reset');
@@ -145,10 +149,37 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         }
     } catch (error) {
         console.error('Login error:', error);
+        
         alert('Could not connect to the server. Please try again later.');
     }
 });
+document.getElementById('verifyCodeButtonLogin').addEventListener('click', async function () {
+    const otp = document.getElementById('verificationCodeLogin').value;
+    const email = localStorage.getItem('tempLoginEmail');
 
+    try {
+        const response = await fetch('http://localhost:8080/verifyOTP', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp }),
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html">Profile</a>';
+
+            alert('Login successful!');
+            document.getElementById('verifyModalLogin').style.display = 'none';
+            window.location.reload(); 
+        } else {
+            const result = await response.json();
+            alert(result.message || 'Invalid OTP. Please try again.');
+        }
+    } catch (error) {
+        console.error('OTP verification error:', error);
+        alert('Could not verify OTP. Please try again later.');
+    }
+});
 
 
 
@@ -263,6 +294,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         alert('An error occurred. Please try again.');
     }
 });
+
 
 
 

@@ -7,6 +7,8 @@
     <list default="true" id="8edcd18b-4d81-4ccf-adb0-e89b1fb20d17" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/client/main_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/client/main_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Frontend/client/navbarHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/../Frontend/client/navbarHeader.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

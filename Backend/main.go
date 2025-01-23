@@ -43,6 +43,7 @@ func main() {
 	http.HandleFunc("/send", handleForm)
 	http.HandleFunc("/deleteUserAdmin", deleteUserFromAdminPage)
 	http.HandleFunc("/verifyCode", verifyCode)
+	http.HandleFunc("/verifyOTP", verifyOTP)
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
@@ -215,12 +216,22 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logrus.WithFields(logrus.Fields{
-		"userID": user.ID,
-		"email":  user.Email,
-		"status": "success",
-	}).Info("User logged in successfully")
+	// Генерация OTP
+	otp := fmt.Sprintf("%06d", rand.Intn(1000000)) // 6-значный код
+	expiry := time.Now().Add(5 * time.Minute)      // Срок действия OTP: 5 минут
 
+	// Сохраняем OTP и время его действия в базе данных
+	_, err = db.Exec("UPDATE users SET otp = $1, otp_expiry = $2 WHERE id = $3", otp, expiry, user.ID)
+	if err != nil {
+		logrus.Error("Failed to save OTP:", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Отправка OTP на email
+	go sendEmail("kantaidaulet@gmail.com", "vxaf gbyk lqqy zhyb", user.Email, "Your OTP Code", fmt.Sprintf("Your OTP is: %s", otp), "", "")
+
+	//Cookies
 	session, _ := store.Get(r, "user-session")
 	session.Values["userID"] = user.ID
 	session.Values["fullname"] = user.Fullname
@@ -229,8 +240,16 @@ func login(w http.ResponseWriter, r *http.Request) {
 	session.Values["userstatus"] = user.Userstatus
 	session.Save(r, w)
 
+	// Отправляем успешный ответ с данными пользователя (не с OTP)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
+
+	logrus.WithFields(logrus.Fields{
+		"userID": user.ID,
+		"email":  user.Email,
+		"status": "success",
+	}).Info("User logged in successfully")
+
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
@@ -1134,4 +1153,45 @@ func verifyCode(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Email verified and user registered"})
+}
+
+func verifyOTP(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Email string `json:"email"`
+		OTP   string `json:"otp"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	var storedOTP string
+	var otpExpiry time.Time
+	var userID int
+
+	err := db.QueryRow("SELECT id, otp, otp_expiry FROM users WHERE email = $1", input.Email).Scan(&userID, &storedOTP, &otpExpiry)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		return
+	}
+
+	if storedOTP != input.OTP || time.Now().After(otpExpiry) {
+		http.Error(w, "Invalid or expired OTP", http.StatusUnauthorized)
+		return
+	}
+
+	// Удаляем OTP после успешной проверки
+	_, err = db.Exec("UPDATE users SET otp = NULL, otp_expiry = NULL WHERE id = $1", userID)
+	if err != nil {
+		http.Error(w, "Failed to clear OTP", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "OTP verified"})
 }
