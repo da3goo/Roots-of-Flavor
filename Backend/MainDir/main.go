@@ -5,12 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/sessions"
-	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/time/rate"
 	"io"
 	"io/ioutil"
 	"log"
@@ -20,13 +14,19 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/sessions"
+	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/time/rate"
 )
 
 var (
-	db                *sql.DB
-	store             = sessions.NewCookieStore([]byte("key1"))
-	limiter           = rate.NewLimiter(1, 3)
-	verificationCodes = make(map[string]string)
+	db      *sql.DB
+	store   = sessions.NewCookieStore([]byte("key1"))
+	limiter = rate.NewLimiter(1, 3)
 )
 
 func main() {
@@ -117,6 +117,7 @@ func init() {
 		}).Info("Successfully connected to DB")
 	}
 }
+
 func addCORSHeaders(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
@@ -125,16 +126,6 @@ func addCORSHeaders(w http.ResponseWriter) {
 
 func login(w http.ResponseWriter, r *http.Request) {
 	// Rate limiting
-	if !limiter.Allow() {
-		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
-
-		w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limiter.Limit()))
-		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
-		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
-
-		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
-		return
-	}
 
 	logrus.WithFields(logrus.Fields{
 		"method":   r.Method,
@@ -690,23 +681,6 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func changePassword(w http.ResponseWriter, r *http.Request) {
-	//Request limitting
-	if !limiter.Allow() {
-		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
-
-		w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limiter.Limit()))
-		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
-		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
-
-		logrus.WithFields(logrus.Fields{
-			"resetTime": resetTime,
-			"remaining": limiter.Burst(),
-			"limit":     limiter.Limit(),
-		}).Warn("Rate limit exceeded")
-
-		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
-		return
-	}
 
 	if r.Method != http.MethodPost {
 		logrus.WithFields(logrus.Fields{
@@ -834,23 +808,24 @@ func changePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func changeEmail(w http.ResponseWriter, r *http.Request) {
+	// Rate limiting
 	if !limiter.Allow() {
 		resetTime := time.Now().Add(time.Second * time.Duration(limiter.Reserve().Delay()))
 
-		w.Header().Set("X-RateLimit-Limit", fmt.Sprintf("%d", limiter.Limit()))
+		// Удаляем использование limiter.Limit() и вместо этого можем не устанавливать заголовки или установить фиксированные значения
 		w.Header().Set("X-RateLimit-Remaining", fmt.Sprintf("%d", limiter.Burst()))
 		w.Header().Set("X-RateLimit-Reset", fmt.Sprintf("%d", int(resetTime.Unix())))
 
 		logrus.WithFields(logrus.Fields{
 			"resetTime": resetTime,
 			"remaining": limiter.Burst(),
-			"limit":     limiter.Limit(),
 		}).Warn("Rate limit exceeded")
 
 		http.Error(w, "Rate limit exceeded, try again later", http.StatusTooManyRequests)
 		return
 	}
 
+	// Обработка метода запроса
 	if r.Method != http.MethodPost {
 		logrus.WithFields(logrus.Fields{
 			"method": r.Method,
@@ -859,6 +834,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Декодирование JSON тела запроса
 	var requestData struct {
 		NewEmail string `json:"newEmail"`
 	}
@@ -872,6 +848,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Получение сессии
 	session, err := store.Get(r, "user-session")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -881,6 +858,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Получение userID из сессии
 	userID, ok := session.Values["userID"].(int)
 	if !ok || userID == 0 {
 		logrus.Warn("User not logged in")
@@ -888,6 +866,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Проверка существования email в базе данных
 	var existingUserID int
 	err = db.QueryRow("SELECT id FROM users WHERE email = $1", requestData.NewEmail).Scan(&existingUserID)
 	if err != nil && err != sql.ErrNoRows {
@@ -899,6 +878,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Если email уже существует
 	if existingUserID != 0 {
 		logrus.WithFields(logrus.Fields{
 			"newEmail": requestData.NewEmail,
@@ -907,6 +887,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Обновление email в базе данных
 	_, err = db.Exec("UPDATE users SET email = $1 WHERE id = $2", requestData.NewEmail, userID)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -918,6 +899,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Обновление email в сессии
 	session.Values["email"] = requestData.NewEmail
 	err = session.Save(r, w)
 	if err != nil {
@@ -934,6 +916,7 @@ func changeEmail(w http.ResponseWriter, r *http.Request) {
 		"newEmail": requestData.NewEmail,
 	}).Info("Email updated successfully")
 
+	// Ответ клиенту
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "Email updated successfully"})
 }
