@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    const apiUrl = `http://localhost:8080/food?name=${foodName}`;
+    const apiUrl = `https://8f6c-185-13-21-18.ngrok-free.app/food?name==${foodName}`;
 
 
    
