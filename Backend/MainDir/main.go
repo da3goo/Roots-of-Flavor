@@ -1168,7 +1168,6 @@ func verifyOTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Удаляем OTP после успешной проверки
 	_, err = db.Exec("UPDATE users SET otp = NULL, otp_expiry = NULL WHERE id = $1", userID)
 	if err != nil {
 		http.Error(w, "Failed to clear OTP", http.StatusInternalServerError)

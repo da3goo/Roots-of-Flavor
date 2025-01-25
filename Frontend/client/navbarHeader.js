@@ -168,7 +168,7 @@ document.getElementById('verifyCodeButtonLogin').addEventListener('click', async
         if (response.ok) {
             document.getElementById('logInText').innerHTML = '<a href="/Frontend/profilePage/profile.html">Profile</a>';
 
-            alert('Login successful!');
+            
             document.getElementById('verifyModalLogin').style.display = 'none';
             window.location.reload(); 
         } else {

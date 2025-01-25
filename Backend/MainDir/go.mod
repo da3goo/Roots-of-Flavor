@@ -13,9 +13,11 @@ require (
 )
 
 require (
+	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/stretchr/testify v1.10.0 // indirect
+	github.com/tebeka/selenium v0.9.9 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 
 )
