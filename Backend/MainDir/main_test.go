@@ -174,7 +174,7 @@ func TestLoginWithOTP(t *testing.T) {
 
 	// WebDriver settings for Chrome
 	caps := selenium.Capabilities{"browserName": "chrome"}
-	wd, err := selenium.NewRemote(caps, "http://localhost:62977")
+	wd, err := selenium.NewRemote(caps, "http://localhost:49909")
 	if err != nil {
 		t.Fatalf("Error connecting to the WebDriver: %v", err)
 	}

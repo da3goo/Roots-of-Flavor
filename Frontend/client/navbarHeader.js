@@ -102,7 +102,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
 
     try {
         console.log("Sending login request for email:", email);
-        const response = await fetch('http://localhost:8080/login', {
+        const response = await fetch('https://1d47-185-13-21-20.ngrok-free.app/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
@@ -158,7 +158,7 @@ document.getElementById('verifyCodeButtonLogin').addEventListener('click', async
     const email = localStorage.getItem('tempLoginEmail');
 
     try {
-        const response = await fetch('http://localhost:8080/verifyOTP', {
+        const response = await fetch('https://1d47-185-13-21-20.ngrok-free.app/verifyOTP', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp }),
