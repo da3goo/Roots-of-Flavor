@@ -47,7 +47,7 @@ func main() {
 
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
-	origins := handlers.AllowedOrigins([]string{"*"})
+	origins := handlers.AllowedOrigins([]string{"https://roots-of-flavor-test.vercel.app"})
 	credentials := handlers.AllowCredentials()
 
 	log.Println("Starting server on :8080")
